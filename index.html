@@ -3,287 +3,451 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spades</title>
+    <title>Spades Game - Interactive</title>
     <style>
-        /* --- Base & Table Setup --- */
+        :root {
+            --table-green: #236c34;
+            --table-dark: #174a22;
+            --felt-pattern: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60" opacity="0.05"><text x="10" y="25" font-size="15" fill="white">♠</text><text x="40" y="25" font-size="15" fill="white">♥</text><text x="10" y="55" font-size="15" fill="white">♣</text><text x="40" y="55" font-size="15" fill="white">♦</text></svg>');
+            --gold: #fca311;
+            --red: #d90429;
+            --card-w: 75px;
+            --card-h: 110px;
+        }
+
         body, html {
             margin: 0;
             padding: 0;
             width: 100%;
             height: 100%;
-            background-color: #1e5c2b; /* Green felt background */
+            background: radial-gradient(circle at center, var(--table-green) 0%, var(--table-dark) 100%);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: white;
             overflow: hidden;
             user-select: none;
         }
 
-        #game-board {
+        #game-container {
             position: relative;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
-        /* --- UI Elements --- */
+        /* Inner decorative table mat */
+        #table-mat {
+            position: absolute;
+            top: 4%; left: 3%; right: 3%; bottom: 4%;
+            border: 3px solid rgba(255, 255, 255, 0.15);
+            border-radius: 60px;
+            background-image: var(--felt-pattern);
+            pointer-events: none;
+            box-shadow: inset 0 0 40px rgba(0,0,0,0.3);
+        }
+
         .btn {
-            background-color: #fca311;
+            background-color: var(--gold);
             border: none;
-            border-radius: 4px;
-            padding: 8px 12px;
+            border-radius: 6px;
+            padding: 10px 15px;
             cursor: pointer;
             font-weight: bold;
             color: #000;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transition: transform 0.1s, background-color 0.2s;
+            font-size: 16px;
         }
+        .btn:hover { transform: scale(1.05); background-color: #ffb703; }
+        .btn:active { transform: scale(0.95); }
+        .btn-exit { background-color: #7209b7; color: white; }
+        .btn-exit:hover { background-color: #560bad; }
 
-        #top-left-ui { position: absolute; top: 10px; left: 10px; }
-        #top-right-ui { position: absolute; top: 10px; right: 10px; display: flex; gap: 10px; }
-        
+        #ui-top-left { position: absolute; top: 20px; left: 20px; z-index: 10; }
+        #ui-top-right { position: absolute; top: 20px; right: 20px; display: flex; gap: 12px; z-index: 10; }
+
         #scoreboard {
             position: absolute;
-            bottom: 20px;
-            right: 20px;
-            background-color: rgba(0, 0, 0, 0.6);
-            padding: 15px;
-            border-radius: 8px;
-            font-size: 14px;
+            bottom: 25px;
+            right: 25px;
+            background-color: rgba(0, 0, 0, 0.75);
+            padding: 15px 20px;
+            border-radius: 12px;
+            font-size: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+            z-index: 10;
         }
-        #scoreboard h3 { margin: 0 0 10px 0; color: #fca311; text-align: center; font-size: 16px; }
-        .score-row { display: flex; justify-content: space-between; gap: 20px; margin-bottom: 5px; }
+        #scoreboard h3 { margin: 0 0 12px 0; color: var(--gold); text-align: center; font-size: 18px; text-transform: uppercase; letter-spacing: 1px;}
+        .score-row { display: flex; justify-content: space-between; gap: 30px; margin-bottom: 8px; font-weight: 500; }
 
         #turn-prompt {
             position: absolute;
-            bottom: 160px;
-            background-color: rgba(0, 0, 0, 0.5);
-            padding: 8px 20px;
-            border-radius: 20px;
-            font-size: 14px;
-            z-index: 10;
+            bottom: 210px;
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 10px 25px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: bold;
+            z-index: 20;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            transition: background-color 0.3s;
         }
 
-        /* --- Player Areas --- */
         .player-area {
             position: absolute;
-            text-align: center;
+            display: flex;
+            align-items: center;
+            z-index: 5;
+        }
+
+        .avatar-box {
             display: flex;
             flex-direction: column;
             align-items: center;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
-        .avatar-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .avatar {
-            width: 50px;
-            height: 50px;
+        .avatar-svg {
+            width: 60px;
+            height: 60px;
+            background: #e0e0e0;
             border-radius: 50%;
-            border: 2px solid white;
-            background-color: #333;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 24px;
-            margin-bottom: 5px;
+            border: 3px solid #fff;
+            margin-bottom: 6px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+            overflow: hidden;
         }
 
-        .player-stats { font-size: 12px; line-height: 1.4; }
-        
-        #player-top { top: 20px; left: 50%; transform: translateX(-50%); }
-        #player-bottom { bottom: 20px; left: 50%; transform: translateX(-50%); }
-        
-        /* Side players layout adjustments */
-        #player-left { left: 20px; top: 50%; transform: translateY(-50%); flex-direction: row; gap: 15px; }
-        #player-right { right: 20px; top: 50%; transform: translateY(-50%); flex-direction: row-reverse; gap: 15px; }
+        .player-stats { font-size: 14px; text-align: center; line-height: 1.3; font-weight: 600; text-shadow: 1px 1px 2px black; }
 
-        /* --- Cards --- */
+        /* Position variations */
+        #player-top { top: 30px; left: 50%; transform: translateX(-50%); flex-direction: column; }
+        #player-bottom { bottom: 20px; left: 50%; transform: translateX(-50%); flex-direction: column; gap: 15px;}
+        #player-left { left: 30px; top: 50%; transform: translateY(-50%); flex-direction: row; gap: 20px; }
+        #player-right { right: 30px; top: 50%; transform: translateY(-50%); flex-direction: row-reverse; gap: 20px; }
+
+        .card {
+            width: var(--card-w);
+            height: var(--card-h);
+            border-radius: 8px;
+            box-shadow: 2px 4px 8px rgba(0,0,0,0.4);
+            position: relative;
+            background-color: white;
+        }
+
         .card-back {
-            width: 45px;
-            height: 65px;
-            background-color: #b22222;
-            border: 2px solid white;
-            border-radius: 4px;
-            background-image: repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(255,255,255,0.1) 5px, rgba(255,255,255,0.1) 10px);
+            background-color: #800000;
+            border: 4px solid white;
+            background-image: 
+                radial-gradient(circle at 10px 10px, rgba(255,255,255,0.1) 2px, transparent 2px),
+                radial-gradient(circle at 20px 20px, rgba(255,255,255,0.1) 2px, transparent 2px);
+            background-size: 20px 20px;
         }
 
         .card-face {
-            width: 60px;
-            height: 90px;
-            background-color: white;
-            border: 1px solid #ccc;
-            border-radius: 6px;
             color: black;
+            border: 1px solid #ccc;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 20px;
-            font-weight: bold;
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
-            cursor: pointer;
-            transition: transform 0.2s;
-            position: relative;
-            background-size: cover;
+            background: linear-gradient(135deg, #fff 0%, #f9f9f9 100%);
         }
 
-        .card-face:hover { transform: translateY(-10px); }
-        .card-face.red { color: red; }
+        .card-face:hover {
+            transform: translateY(-15px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            z-index: 100 !important;
+        }
+        
+        .card-face.red-suit { color: var(--red); }
 
-        /* Card container styles */
-        .hand-horizontal { display: flex; gap: 2px; }
-        .hand-vertical { display: flex; flex-direction: column; gap: 2px; }
-        .my-hand { display: flex; gap: -30px; margin-top: 10px; } /* Overlapping for player hand */
-        .my-hand .card-face { margin-left: -20px; }
+        .card-corner {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 18px;
+            font-weight: 800;
+            line-height: 1;
+        }
+        
+        .card-corner .suit { font-size: 16px; margin-top: -2px; }
+        .corner-tl { top: 6px; left: 6px; }
+        .corner-br { bottom: 6px; right: 6px; transform: rotate(180deg); }
+        
+        .card-center { font-size: 40px; }
+        .card-face.played { cursor: default; }
+        .card-face.played:hover { transform: none; box-shadow: 2px 4px 8px rgba(0,0,0,0.4); }
+
+        .hand-h { display: flex; gap: -40px; }
+        .hand-h .card-back { margin-left: -50px; }
+        .hand-h .card-back:first-child { margin-left: 0; }
+        
+        .hand-v { display: flex; flex-direction: column; gap: -70px; }
+        .hand-v .card-back { margin-top: -85px; transform: rotate(90deg); }
+        .hand-v .card-back:first-child { margin-top: 0; }
+
+        .my-hand { 
+            display: flex; 
+            /* Slightly spaced out for better clickability */
+            gap: -25px; 
+            margin-top: 10px; 
+        }
+        .my-hand .card-face { 
+            margin-left: -35px; 
+            /* Set z-index incrementally so right cards overlap left */
+        }
         .my-hand .card-face:first-child { margin-left: 0; }
 
-        /* Center Play Area */
-        #play-area {
+        /* Center Trick Area */
+        #trick-area {
             position: absolute;
-            width: 200px;
-            height: 200px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            width: 250px;
+            height: 250px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
         }
 
         .played-card {
             position: absolute;
-            transform: scale(0.9);
+            pointer-events: auto;
+            transform: scale(0.95);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            opacity: 0; /* Start hidden for animation */
         }
+
+        /* End positions for cards played in the center trick */
+        .pos-bottom { bottom: 10%; left: 50%; transform: translateX(-50%) rotate(-5deg) scale(0.95); }
+        .pos-left { left: 10%; top: 50%; transform: translateY(-50%) rotate(15deg) scale(0.95); z-index: 2; }
+        .pos-top { top: 10%; left: 50%; transform: translateX(-50%) rotate(5deg) scale(0.95); z-index: 3;}
+        .pos-right { right: 10%; top: 50%; transform: translateY(-50%) rotate(-10deg) scale(0.95); z-index: 4; }
+
     </style>
 </head>
 <body>
 
-    <div id="game-board">
-        <!-- Top UI -->
-        <div id="top-left-ui">
-            <button class="btn" style="background-color: #8a2be2; color: white;">🚪 Exit</button>
+    <div id="game-container">
+        <div id="table-mat"></div>
+
+        <div id="ui-top-left">
+            <button class="btn btn-exit">🚪 Exit</button>
         </div>
-        <div id="top-right-ui">
+        <div id="ui-top-right">
             <button class="btn">🔊</button>
             <button class="btn">☰</button>
         </div>
 
-        <!-- Helen (Top Player) -->
-        <div id="player-top" class="player-area">
-            <div class="avatar-container">
-                <div class="avatar">👩</div>
-                <div class="player-stats">Helen<br>0/1 Tricks</div>
-            </div>
-            <div class="hand-horizontal">
-                <!-- 13 Card Backs -->
-                <script>for(let i=0; i<13; i++) document.write('<div class="card-back"></div>');</script>
-            </div>
-        </div>
-
-        <!-- Frank (Left Player) -->
-        <div id="player-left" class="player-area">
-            <div class="avatar-container">
-                <div class="avatar">👨</div>
-                <div class="player-stats">Frank<br>0/2 Tricks</div>
-            </div>
-            <div class="hand-vertical">
-                <script>for(let i=0; i<13; i++) document.write('<div class="card-back" style="width: 65px; height: 15px;"></div>');</script>
-            </div>
-        </div>
-
-        <!-- Alice (Right Player) -->
-        <div id="player-right" class="player-area">
-            <div class="avatar-container">
-                <div class="avatar">👱‍♀️</div>
-                <div class="player-stats">Alice<br>2/3 Tricks</div>
-            </div>
-            <div class="hand-vertical">
-                <script>for(let i=0; i<13; i++) document.write('<div class="card-back" style="width: 65px; height: 15px;"></div>');</script>
-            </div>
-        </div>
-
-        <!-- Center Play Area -->
-        <div id="play-area">
-            <!-- Example of a card already played by Top player -->
-            <div class="card-face played-card" style="top: 20px;">5 ♣</div>
+        <div id="scoreboard">
+            <h3>Current Score</h3>
+            <div class="score-row"><span>You & Helen</span><span>272 (2 bags)</span></div>
+            <div class="score-row"><span>Frank & Alice</span><span>149 (9 bags)</span></div>
         </div>
 
         <!-- Turn Prompt -->
         <div id="turn-prompt">Your turn! Click a card to play.</div>
 
-        <!-- You (Bottom Player) -->
-        <div id="player-bottom" class="player-area">
-            <div class="my-hand" id="my-cards">
-                <!-- 13 Interactive Cards -->
-                <div class="card-face" data-card="7♠">7 ♠</div>
-                <div class="card-face" data-card="8♠">8 ♠</div>
-                <div class="card-face" data-card="9♠">9 ♠</div>
-                <div class="card-face" data-card="10♠">10 ♠</div>
-                <div class="card-face" data-card="J♠">J ♠</div>
-                <div class="card-face" data-card="Q♠">Q ♠</div>
-                <div class="card-face red" data-card="A♥">A ♥</div>
-                <div class="card-face red" data-card="K♥">K ♥</div>
-                <div class="card-face red" data-card="Q♥">Q ♥</div>
-                <div class="card-face" data-card="J♣">J ♣</div>
-                <div class="card-face" data-card="10♣">10 ♣</div>
-                <div class="card-face red" data-card="2♦">2 ♦</div>
-                <div class="card-face red" data-card="4♦">4 ♦</div>
+        <!-- Center Trick Play Area -->
+        <div id="trick-area"></div>
+
+        <!-- Helen (Top) -->
+        <div id="player-top" class="player-area">
+            <div class="avatar-box" style="margin-bottom: 15px; flex-direction: row; gap: 10px;">
+                <svg class="avatar-svg" viewBox="0 0 100 100">
+                    <rect width="100" height="100" fill="#f0d5b7"/>
+                    <path d="M 30,100 C 30,70 70,70 70,100" fill="#a55252"/> <!-- clothes -->
+                    <circle cx="50" cy="55" r="22" fill="#ffcdab"/> <!-- face -->
+                    <path d="M 25,60 C 25,10 75,10 75,60 C 85,30 15,30 25,60" fill="#543026"/> <!-- hair -->
+                    <circle cx="43" cy="53" r="3" fill="#333"/>
+                    <circle cx="57" cy="53" r="3" fill="#333"/>
+                    <path d="M 45,65 Q 50,70 55,65" stroke="#a3605d" stroke-width="2" fill="transparent"/>
+                </svg>
+                <div class="player-stats">Helen<br>0/1 Tricks</div>
             </div>
-            <div class="avatar-container" style="margin-top: 15px; flex-direction: row; gap: 10px;">
-                <div class="avatar">😎</div>
-                <div class="player-stats" style="text-align: left;">You<br>1/3 Tricks</div>
+            <div class="hand-h">
+                <script>for(let i=0; i<13; i++) document.write('<div class="card card-back"></div>');</script>
             </div>
         </div>
 
-        <!-- Scoreboard -->
-        <div id="scoreboard">
-            <h3>Current Score</h3>
-            <div class="score-row">
-                <span>You & Helen</span>
-                <span>272 (2 bags)</span>
+        <!-- Frank (Left) -->
+        <div id="player-left" class="player-area">
+            <div class="avatar-box">
+                <svg class="avatar-svg" viewBox="0 0 100 100">
+                    <rect width="100" height="100" fill="#b0c4de"/>
+                    <path d="M 20,100 C 20,60 80,60 80,100" fill="#4a5b6d"/> <!-- clothes -->
+                    <circle cx="50" cy="55" r="22" fill="#f4c29f"/> <!-- face -->
+                    <path d="M 35,65 Q 50,85 65,65 Z" fill="#654321"/> <!-- beard -->
+                    <path d="M 20,40 Q 50,15 80,40 Z" fill="#3e4a3d"/> <!-- hat -->
+                    <rect x="18" y="38" width="64" height="6" fill="#2d362c" rx="3"/> <!-- hat brim -->
+                    <circle cx="43" cy="50" r="2.5" fill="#222"/>
+                    <circle cx="57" cy="50" r="2.5" fill="#222"/>
+                </svg>
+                <div class="player-stats">Frank<br>0/2 Tricks</div>
             </div>
-            <div class="score-row">
-                <span>Frank & Alice</span>
-                <span>149 (9 bags)</span>
+            <div class="hand-v">
+                <script>for(let i=0; i<13; i++) document.write('<div class="card card-back"></div>');</script>
+            </div>
+        </div>
+
+        <!-- Alice (Right) -->
+        <div id="player-right" class="player-area">
+            <div class="avatar-box">
+                <svg class="avatar-svg" viewBox="0 0 100 100">
+                    <rect width="100" height="100" fill="#f9e4b7"/>
+                    <path d="M 25,100 C 25,65 75,65 75,100" fill="#c14e4e"/> <!-- clothes -->
+                    <circle cx="50" cy="55" r="22" fill="#fae0c8"/> <!-- face -->
+                    <path d="M 25,50 C 20,10 80,10 75,50 L 70,65 Q 50,75 30,65 Z" fill="#e8b923"/> <!-- blonde bob -->
+                    <circle cx="50" cy="55" r="22" fill="#fae0c8"/> <!-- re-draw face over back hair -->
+                    <path d="M 30,35 Q 50,25 70,35 L 75,50 Q 50,30 25,50 Z" fill="#d4a317"/> <!-- bangs -->
+                    <circle cx="42" cy="53" r="3" fill="#4a734a"/> <!-- eyes -->
+                    <circle cx="58" cy="53" r="3" fill="#4a734a"/>
+                    <path d="M 46,65 Q 50,68 54,65" stroke="#cc7070" stroke-width="2" fill="transparent"/>
+                </svg>
+                <div class="player-stats">Alice<br>2/3 Tricks</div>
+            </div>
+            <div class="hand-v">
+                <script>for(let i=0; i<13; i++) document.write('<div class="card card-back"></div>');</script>
+            </div>
+        </div>
+
+        <div id="player-bottom" class="player-area">
+            <!-- Hand rendering logic via HTML templates for standard spacing -->
+            <div class="my-hand" id="my-cards">
+                <!-- Spades -->
+                <div class="card card-face" data-card="A♠" data-suit="♠" data-val="A"><div class="card-corner corner-tl">A<span class="suit">♠</span></div><div class="card-center">♠</div><div class="card-corner corner-br">A<span class="suit">♠</span></div></div>
+                <div class="card card-face" data-card="K♠" data-suit="♠" data-val="K"><div class="card-corner corner-tl">K<span class="suit">♠</span></div><div class="card-center">♠</div><div class="card-corner corner-br">K<span class="suit">♠</span></div></div>
+                <div class="card card-face" data-card="Q♠" data-suit="♠" data-val="Q"><div class="card-corner corner-tl">Q<span class="suit">♠</span></div><div class="card-center">♠</div><div class="card-corner corner-br">Q<span class="suit">♠</span></div></div>
+                <div class="card card-face" data-card="J♠" data-suit="♠" data-val="J"><div class="card-corner corner-tl">J<span class="suit">♠</span></div><div class="card-center">♠</div><div class="card-corner corner-br">J<span class="suit">♠</span></div></div>
+                <div class="card card-face" data-card="10♠" data-suit="♠" data-val="10"><div class="card-corner corner-tl">10<span class="suit">♠</span></div><div class="card-center">♠</div><div class="card-corner corner-br">10<span class="suit">♠</span></div></div>
+                <div class="card card-face" data-card="9♠" data-suit="♠" data-val="9"><div class="card-corner corner-tl">9<span class="suit">♠</span></div><div class="card-center">♠</div><div class="card-corner corner-br">9<span class="suit">♠</span></div></div>
+                <!-- Hearts -->
+                <div class="card card-face red-suit" data-card="Q♥" data-suit="♥" data-val="Q"><div class="card-corner corner-tl">Q<span class="suit">♥</span></div><div class="card-center">♥</div><div class="card-corner corner-br">Q<span class="suit">♥</span></div></div>
+                <div class="card card-face red-suit" data-card="10♥" data-suit="♥" data-val="10"><div class="card-corner corner-tl">10<span class="suit">♥</span></div><div class="card-center">♥</div><div class="card-corner corner-br">10<span class="suit">♥</span></div></div>
+                <!-- Clubs -->
+                <div class="card card-face" data-card="A♣" data-suit="♣" data-val="A"><div class="card-corner corner-tl">A<span class="suit">♣</span></div><div class="card-center">♣</div><div class="card-corner corner-br">A<span class="suit">♣</span></div></div>
+                <div class="card card-face" data-card="8♣" data-suit="♣" data-val="8"><div class="card-corner corner-tl">8<span class="suit">♣</span></div><div class="card-center">♣</div><div class="card-corner corner-br">8<span class="suit">♣</span></div></div>
+                <!-- Diamonds -->
+                <div class="card card-face red-suit" data-card="4♦" data-suit="♦" data-val="4"><div class="card-corner corner-tl">4<span class="suit">♦</span></div><div class="card-center">♦</div><div class="card-corner corner-br">4<span class="suit">♦</span></div></div>
+                <div class="card card-face red-suit" data-card="2♦" data-suit="♦" data-val="2"><div class="card-corner corner-tl">2<span class="suit">♦</span></div><div class="card-center">♦</div><div class="card-corner corner-br">2<span class="suit">♦</span></div></div>
+            </div>
+            
+            <div class="avatar-box" style="flex-direction: row; gap: 15px; background: rgba(0,0,0,0.6); border-color: var(--gold);">
+                <svg class="avatar-svg" viewBox="0 0 100 100">
+                    <rect width="100" height="100" fill="#a4d4d8"/>
+                    <path d="M 25,100 C 25,60 75,60 75,100" fill="#2c3e50"/> <!-- jacket -->
+                    <path d="M 40,100 L 50,75 L 60,100" fill="#ecf0f1"/> <!-- shirt -->
+                    <circle cx="50" cy="55" r="22" fill="#ffbca6"/> <!-- face -->
+                    <path d="M 25,45 Q 50,15 75,45 C 80,30 20,30 25,45 Z" fill="#3e2723"/> <!-- hair -->
+                    <!-- Sunglasses -->
+                    <rect x="33" y="48" width="14" height="10" fill="#111" rx="2"/>
+                    <rect x="53" y="48" width="14" height="10" fill="#111" rx="2"/>
+                    <path d="M 47,51 L 53,51" stroke="#111" stroke-width="2"/>
+                    <path d="M 45,67 Q 50,71 55,67" stroke="#b0725a" stroke-width="2" fill="transparent"/>
+                </svg>
+                <div class="player-stats" style="text-align: left; font-size: 16px;">
+                    <span style="color: var(--gold);">You</span><br>1/3 Tricks
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Game Logic -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const myCards = document.querySelectorAll('#my-cards .card-face');
-            const playArea = document.getElementById('play-area');
+            const trickArea = document.getElementById('trick-area');
             const turnPrompt = document.getElementById('turn-prompt');
+            let isMyTurn = true;
+
+            // Z-index fix for overlapping hand correctly
+            myCards.forEach((card, index) => {
+                card.style.zIndex = index + 1;
+            });
+
+            // Helper to create a card element for AI opponents
+            function createAICard(val, suit, colorClass, positionClass) {
+                const card = document.createElement('div');
+                card.className = `card card-face played-card ${colorClass} ${positionClass}`;
+                card.innerHTML = `
+                    <div class="card-corner corner-tl">${val}<span class="suit">${suit}</span></div>
+                    <div class="card-center">${suit}</div>
+                    <div class="card-corner corner-br">${val}<span class="suit">${suit}</span></div>
+                `;
+                return card;
+            }
 
             myCards.forEach(card => {
                 card.addEventListener('click', function() {
-                    // Prevent playing multiple cards
-                    if (this.classList.contains('played')) return;
+                    // Prevent action if game is waiting on AI
+                    if (!isMyTurn || this.classList.contains('played')) return;
+                    isMyTurn = false;
 
-                    // Remove card from hand visually
+                    // 1. Player Turn
+                    // Hide in hand visually but maintain spacing
                     this.style.visibility = 'hidden';
                     this.classList.add('played');
                     
-                    // Create a clone to put in the center
+                    // Clone and format for trick area
                     const playedCard = this.cloneNode(true);
                     playedCard.style.visibility = 'visible';
-                    playedCard.className = 'card-face played-card';
+                    playedCard.className = `card card-face played-card pos-bottom ${this.classList.contains('red-suit') ? 'red-suit' : ''}`;
                     
-                    // Keep red text styling if applicable
-                    if (this.classList.contains('red')) {
-                        playedCard.classList.add('red');
-                    }
-
-                    // Position it at the bottom of the center pile
-                    playedCard.style.bottom = '20px';
-                    playedCard.style.margin = '0';
+                    trickArea.appendChild(playedCard);
                     
-                    playArea.appendChild(playedCard);
+                    // Animate in
+                    requestAnimationFrame(() => {
+                        playedCard.style.opacity = '1';
+                    });
 
-                    // Update UI prompt to show the turn is over
-                    turnPrompt.innerText = "Waiting for opponents...";
-                    turnPrompt.style.backgroundColor = "rgba(150, 0, 0, 0.7)";
+                    // Update UI state
+                    turnPrompt.innerText = "Waiting for Frank...";
+                    turnPrompt.style.backgroundColor = "rgba(100, 30, 30, 0.9)";
+                    turnPrompt.style.color = "white";
+
+                    // 2. Simulate Frank's Turn (1s)
+                    setTimeout(() => {
+                        const frankCard = createAICard('2', '♣', '', 'pos-left');
+                        trickArea.appendChild(frankCard);
+                        requestAnimationFrame(() => frankCard.style.opacity = '1');
+                        
+                        turnPrompt.innerText = "Waiting for Helen...";
+                    }, 1000);
+
+                    // 3. Simulate Helen's Turn (2s)
+                    setTimeout(() => {
+                        const helenCard = createAICard('5', '♣', '', 'pos-top');
+                        trickArea.appendChild(helenCard);
+                        requestAnimationFrame(() => helenCard.style.opacity = '1');
+                        
+                        turnPrompt.innerText = "Waiting for Alice...";
+                    }, 2000);
+
+                    // 4. Simulate Alice's Turn (3s)
+                    setTimeout(() => {
+                        const aliceCard = createAICard('7', '♣', '', 'pos-right');
+                        trickArea.appendChild(aliceCard);
+                        requestAnimationFrame(() => aliceCard.style.opacity = '1');
+                        
+                        turnPrompt.innerText = "Trick complete!";
+                        turnPrompt.style.backgroundColor = "rgba(40, 100, 40, 0.9)";
+                    }, 3000);
+
+                    // 5. Clear Trick & Reset (5s)
+                    setTimeout(() => {
+                        trickArea.innerHTML = ''; // Clear all cards in trick
+                        
+                        turnPrompt.innerText = "Your turn! Click a card to play.";
+                        turnPrompt.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
+                        isMyTurn = true;
+                    }, 5000);
+
                 });
             });
         });
