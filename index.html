@@ -13,7 +13,7 @@
             height: 100%;
             background-color: #1e5c2b; /* Fallback green felt */
             
-            /* ADD YOUR CUSTOM BACKGROUND IMAGE HERE */
+            /* Custom Table Background */
             background-image: url('green-felt-texture.png'); 
             background-size: cover;
             background-position: center;
@@ -131,14 +131,13 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 30px;
             margin-bottom: 5px;
             box-shadow: 0px 4px 8px rgba(0,0,0,0.5);
             background-size: cover;
             background-position: center;
         }
 
-        /* ADD YOUR CUSTOM 2D AVATAR IMAGES HERE */
+        /* Custom 2D Avatar Images */
         #avatar-helen { background-image: url('helen-avatar.png'); }
         #avatar-frank { background-image: url('frank-avatar.png'); }
         #avatar-alice { background-image: url('alice-avatar.png'); }
@@ -261,8 +260,7 @@
         <!-- Helen (Top Player) -->
         <div id="player-top" class="player-area">
             <div class="avatar-container">
-                <!-- Ensure emoji fallback is replaced when image loads -->
-                <div class="avatar" id="avatar-helen">👩🏻</div>
+                <div class="avatar" id="avatar-helen"></div>
                 <div class="player-stats">Helen<br>0/1 Tricks</div>
             </div>
             <div class="hand-horizontal">
@@ -273,7 +271,7 @@
         <!-- Frank (Left Player) -->
         <div id="player-left" class="player-area">
             <div class="avatar-container">
-                <div class="avatar" id="avatar-frank">🧔🏽‍♂️</div>
+                <div class="avatar" id="avatar-frank"></div>
                 <div class="player-stats">Frank<br>0/2 Tricks</div>
             </div>
             <div class="hand-vertical">
@@ -284,7 +282,7 @@
         <!-- Alice (Right Player) -->
         <div id="player-right" class="player-area">
             <div class="avatar-container">
-                <div class="avatar" id="avatar-alice">👱🏼‍♀️</div>
+                <div class="avatar" id="avatar-alice"></div>
                 <div class="player-stats">Alice<br>2/3 Tricks</div>
             </div>
             <div class="hand-vertical">
@@ -302,7 +300,7 @@
         <div id="player-bottom" class="player-area">
             <div class="my-hand" id="my-cards"></div>
             <div class="avatar-container" style="margin-top: 20px; flex-direction: row; gap: 15px;">
-                <div class="avatar" id="avatar-user">😎</div>
+                <div class="avatar" id="avatar-user"></div>
                 <div class="player-stats" style="text-align: left;">
                     You<br><span id="user-trick-text">1/3 Tricks</span>
                 </div>
