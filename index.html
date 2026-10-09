@@ -11,13 +11,7 @@
             padding: 0;
             width: 100%;
             height: 100%;
-            background-color: #1e5c2b; /* Fallback green felt */
-            
-            /* Custom Table Background */
-            background-image: url('green-felt-texture.png'); 
-            background-size: cover;
-            background-position: center;
-            
+            background-color: #000; 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: white;
             overflow: hidden;
@@ -32,8 +26,12 @@
             justify-content: center;
             align-items: center;
             box-sizing: border-box;
-            border: 15px solid rgba(0, 0, 0, 0.2); 
-            box-shadow: inset 0 0 50px rgba(0,0,0,0.5); /* Adds depth to the table */
+            border: 15px solid rgba(0, 0, 0, 0.4); 
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.8);
+            background-image: url('green-felt-texture.png'); 
+            background-size: cover;
+            background-position: center;
+            transition: filter 0.3s ease;
         }
 
         /* --- UI Elements --- */
@@ -47,7 +45,9 @@
             color: #000;
             font-size: 16px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transition: transform 0.1s;
         }
+        .btn:active { transform: scale(0.95); }
 
         #top-left-ui { position: absolute; top: 15px; left: 15px; }
         #top-right-ui { position: absolute; top: 15px; right: 15px; display: flex; gap: 10px; z-index: 30; }
@@ -77,6 +77,23 @@
         }
         .menu-item:last-child { border-bottom: none; }
         .menu-item:hover { color: #fca311; }
+
+        /* Settings Modal */
+        #settings-modal {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.95);
+            padding: 25px 40px;
+            border-radius: 12px;
+            border: 2px solid #fca311;
+            z-index: 100;
+            text-align: center;
+            box-shadow: 0px 10px 40px rgba(0,0,0,0.8);
+        }
+        #settings-modal h2 { margin-top: 0; color: #fca311; }
 
         #scoreboard {
             position: absolute;
@@ -137,7 +154,6 @@
             background-position: center;
         }
 
-        /* Custom 2D Avatar Images */
         #avatar-helen { background-image: url('helen-avatar.png'); }
         #avatar-frank { background-image: url('frank-avatar.png'); }
         #avatar-alice { background-image: url('alice-avatar.png'); }
@@ -250,14 +266,24 @@
             <div style="position: relative;">
                 <button id="menu-btn" class="btn">☰</button>
                 <div id="dropdown-menu">
-                    <button class="menu-item">Settings</button>
+                    <button class="menu-item" id="open-settings-btn">Settings</button>
                     <button class="menu-item">How to Play</button>
                     <button class="menu-item">Leave Table</button>
                 </div>
             </div>
         </div>
 
-        <!-- Helen (Top Player) -->
+        <!-- Settings Modal -->
+        <div id="settings-modal">
+            <h2>Game Settings</h2>
+            <div style="margin-bottom: 20px; font-size: 16px;">
+                <label>Table Brightness:</label><br>
+                <input type="range" id="brightness-slider" min="30" max="150" value="100" style="width: 100%; margin-top: 10px;">
+            </div>
+            <button id="close-settings-btn" class="btn" style="width: 100%;">Save & Close</button>
+        </div>
+
+        <!-- Players -->
         <div id="player-top" class="player-area">
             <div class="avatar-container">
                 <div class="avatar" id="avatar-helen"></div>
@@ -268,7 +294,6 @@
             </div>
         </div>
 
-        <!-- Frank (Left Player) -->
         <div id="player-left" class="player-area">
             <div class="avatar-container">
                 <div class="avatar" id="avatar-frank"></div>
@@ -279,7 +304,6 @@
             </div>
         </div>
 
-        <!-- Alice (Right Player) -->
         <div id="player-right" class="player-area">
             <div class="avatar-container">
                 <div class="avatar" id="avatar-alice"></div>
@@ -292,9 +316,7 @@
 
         <!-- Center Play Area -->
         <div id="play-area"></div>
-
-        <!-- Turn Prompt -->
-        <div id="turn-prompt">Your turn! Click a card to play.</div>
+        <div id="turn-prompt">Dealing cards...</div>
 
         <!-- You (Bottom Player) -->
         <div id="player-bottom" class="player-area">
@@ -302,7 +324,7 @@
             <div class="avatar-container" style="margin-top: 20px; flex-direction: row; gap: 15px;">
                 <div class="avatar" id="avatar-user"></div>
                 <div class="player-stats" style="text-align: left;">
-                    You<br><span id="user-trick-text">1/3 Tricks</span>
+                    You<br><span id="user-trick-text">0/3 Tricks</span>
                 </div>
             </div>
         </div>
@@ -325,7 +347,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             
-            // --- UI Menus ---
+            // --- UI Menus & Settings ---
             const soundBtn = document.getElementById('sound-btn');
             let isMuted = false;
             soundBtn.addEventListener('click', () => {
@@ -335,118 +357,170 @@
 
             const menuBtn = document.getElementById('menu-btn');
             const dropdownMenu = document.getElementById('dropdown-menu');
+            const settingsBtn = document.getElementById('open-settings-btn');
+            const settingsModal = document.getElementById('settings-modal');
+            const closeSettingsBtn = document.getElementById('close-settings-btn');
+            const brightnessSlider = document.getElementById('brightness-slider');
+            const gameBoard = document.getElementById('game-board');
+
             menuBtn.addEventListener('click', () => {
                 dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
             });
+            
+            settingsBtn.addEventListener('click', () => {
+                dropdownMenu.style.display = 'none';
+                settingsModal.style.display = 'block';
+            });
+
+            closeSettingsBtn.addEventListener('click', () => {
+                settingsModal.style.display = 'none';
+            });
+
+            brightnessSlider.addEventListener('input', (e) => {
+                gameBoard.style.filter = `brightness(${e.target.value}%)`;
+            });
+
             document.addEventListener('click', (event) => {
                 if (event.target !== menuBtn && !dropdownMenu.contains(event.target)) {
                     dropdownMenu.style.display = 'none';
                 }
             });
 
-            // --- Card Generation ---
+            // --- Dynamic Deck Generation ---
+            const suits = ['♠', '♥', '♣', '♦'];
+            const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+            const suitOrder = { '♠': 1, '♥': 2, '♣': 3, '♦': 4 };
+            const valOrder = { '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14 };
+            
+            let deck = [];
             const myHandContainer = document.getElementById('my-cards');
-            const initialHand = [
-                { val: 'A', suit: '♠', color: 'black' }, { val: 'K', suit: '♠', color: 'black' },
-                { val: 'Q', suit: '♠', color: 'black' }, { val: '10', suit: '♠', color: 'black' },
-                { val: '9', suit: '♠', color: 'black' }, { val: '7', suit: '♠', color: 'black' },
-                { val: 'Q', suit: '♥', color: 'red' },   { val: '10', suit: '♥', color: 'red' },
-                { val: 'A', suit: '♣', color: 'black' }, { val: '8', suit: '♣', color: 'black' },
-                { val: '6', suit: '♣', color: 'black' }, { val: '4', suit: '♦', color: 'red' },
-                { val: '2', suit: '♦', color: 'red' }
-            ];
-
-            initialHand.forEach(card => {
-                const cardDiv = document.createElement('div');
-                cardDiv.className = `card-face ${card.color === 'red' ? 'red' : ''}`;
-                cardDiv.innerHTML = `
-                    <div class="card-value-top">${card.val}<br>${card.suit}</div>
-                    <div class="card-center-suit">${card.suit}</div>
-                    <div class="card-value-bottom">${card.val}<br>${card.suit}</div>
-                `;
-                myHandContainer.appendChild(cardDiv);
-            });
-
-            // --- Trick, Sequence Animations & Scoring Logic ---
             const playArea = document.getElementById('play-area');
             const turnPrompt = document.getElementById('turn-prompt');
-            let userTricks = 1;
+            
+            let userTricks = 0;
             let userBid = 3;
             let baseBags = 2; 
+            let cardsPlayedThisRound = 0;
 
-            const myCards = document.querySelectorAll('#my-cards .card-face');
-            
-            myCards.forEach(card => {
-                card.addEventListener('click', function() {
-                    if (this.classList.contains('played') || turnPrompt.innerText !== "Your turn! Click a card to play.") return;
-
-                    // 1. Play User Card
-                    this.style.visibility = 'hidden';
-                    this.classList.add('played');
-                    const playedCard = this.cloneNode(true);
-                    playedCard.style.visibility = 'visible';
-                    playedCard.className += ' played-card card-drop-anim';
-                    playedCard.style.bottom = '10px'; 
-                    playArea.appendChild(playedCard);
-
-                    // Trigger User Card Entrance Animation
-                    requestAnimationFrame(() => {
-                        playedCard.style.opacity = '1';
-                        playedCard.style.transform = 'scale(0.95)';
-                    });
-
-                    turnPrompt.innerText = "Waiting for opponents...";
-                    turnPrompt.style.backgroundColor = "rgba(150, 0, 0, 0.8)";
-
-                    // 2. Define Opponent Sequence Data
-                    const opponentPlays = [
-                        { val: '4', suit: '♣', color: '', pos: { left: '10px', top: '50px' } },  // Frank
-                        { val: '9', suit: '♣', color: '', pos: { top: '10px' } },                // Helen
-                        { val: '2', suit: '♣', color: '', pos: { right: '10px', top: '50px' } }  // Alice
-                    ];
-
-                    const delayBetweenTurns = 600; // ms between each card play
-
-                    // 3. Execute Sequential Animations
-                    opponentPlays.forEach((play, index) => {
-                        setTimeout(() => {
-                            const c = document.createElement('div');
-                            c.className = `card-face played-card card-drop-anim ${play.color}`;
-                            c.innerHTML = `
-                                <div class="card-value-top">${play.val}<br>${play.suit}</div>
-                                <div class="card-center-suit">${play.suit}</div>
-                                <div class="card-value-bottom">${play.val}<br>${play.suit}</div>`;
-                            Object.assign(c.style, play.pos);
-                            
-                            playArea.appendChild(c);
-
-                            // Trigger Opponent Card Entrance Animation
-                            requestAnimationFrame(() => {
-                                c.style.opacity = '1';
-                                c.style.transform = 'scale(0.95)';
-                            });
-
-                        }, delayBetweenTurns * (index + 1));
-                    });
-
-                    // 4. Resolve Trick and Score
-                    const totalSequenceTime = delayBetweenTurns * opponentPlays.length + 1200;
-                    setTimeout(() => {
-                        playArea.innerHTML = ''; // Clear table
-                        
-                        userTricks++;
-                        document.getElementById('user-trick-text').innerText = `${userTricks}/${userBid} Tricks`;
-                        
-                        if(userTricks > userBid) {
-                            let totalBags = baseBags + (userTricks - userBid);
-                            document.getElementById('user-score-text').innerText = `272 (${totalBags} bags)`;
-                        }
-
-                        turnPrompt.innerText = "Your turn! Click a card to play.";
-                        turnPrompt.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
-                    }, totalSequenceTime);
+            function startNewRound() {
+                cardsPlayedThisRound = 0;
+                userTricks = 0;
+                document.getElementById('user-trick-text').innerText = `${userTricks}/${userBid} Tricks`;
+                
+                // Build and shuffle deck
+                deck = [];
+                suits.forEach(suit => {
+                    const color = (suit === '♥' || suit === '♦') ? 'red' : 'black';
+                    values.forEach(val => deck.push({ val, suit, color }));
                 });
-            });
+                for (let i = deck.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [deck[i], deck[j]] = [deck[j], deck[i]];
+                }
+
+                // Deal and sort hand
+                const initialHand = deck.splice(0, 13);
+                initialHand.sort((a, b) => {
+                    if (suitOrder[a.suit] !== suitOrder[b.suit]) return suitOrder[a.suit] - suitOrder[b.suit];
+                    return valOrder[a.val] - valOrder[b.val];
+                });
+
+                myHandContainer.innerHTML = '';
+                initialHand.forEach(card => {
+                    const cardDiv = document.createElement('div');
+                    cardDiv.className = `card-face ${card.color === 'red' ? 'red' : ''}`;
+                    cardDiv.innerHTML = `
+                        <div class="card-value-top">${card.val}<br>${card.suit}</div>
+                        <div class="card-center-suit">${card.suit}</div>
+                        <div class="card-value-bottom">${card.val}<br>${card.suit}</div>
+                    `;
+                    myHandContainer.appendChild(cardDiv);
+                });
+
+                turnPrompt.innerText = "Your turn! Click a card to play.";
+                turnPrompt.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
+                bindCardClicks();
+            }
+
+            // --- Trick & Animation Logic ---
+            function bindCardClicks() {
+                const myCards = document.querySelectorAll('#my-cards .card-face');
+                myCards.forEach(card => {
+                    card.addEventListener('click', function() {
+                        if (this.classList.contains('played') || turnPrompt.innerText !== "Your turn! Click a card to play.") return;
+
+                        // Play User Card
+                        this.style.visibility = 'hidden';
+                        this.classList.add('played');
+                        const playedCard = this.cloneNode(true);
+                        playedCard.style.visibility = 'visible';
+                        playedCard.className += ' played-card card-drop-anim';
+                        playedCard.style.bottom = '10px'; 
+                        playArea.appendChild(playedCard);
+
+                        requestAnimationFrame(() => {
+                            playedCard.style.opacity = '1';
+                            playedCard.style.transform = 'scale(0.95)';
+                        });
+
+                        turnPrompt.innerText = "Waiting for opponents...";
+                        turnPrompt.style.backgroundColor = "rgba(150, 0, 0, 0.8)";
+
+                        // Dynamic Opponent Plays from remaining deck
+                        const opponentPlays = [
+                            { ...deck.pop(), pos: { left: '10px', top: '50px' } },
+                            { ...deck.pop(), pos: { top: '10px' } },
+                            { ...deck.pop(), pos: { right: '10px', top: '50px' } }
+                        ];
+
+                        const delayBetweenTurns = 600;
+
+                        opponentPlays.forEach((play, index) => {
+                            setTimeout(() => {
+                                const c = document.createElement('div');
+                                c.className = `card-face played-card card-drop-anim ${play.color}`;
+                                c.innerHTML = `
+                                    <div class="card-value-top">${play.val}<br>${play.suit}</div>
+                                    <div class="card-center-suit">${play.suit}</div>
+                                    <div class="card-value-bottom">${play.val}<br>${play.suit}</div>`;
+                                Object.assign(c.style, play.pos);
+                                playArea.appendChild(c);
+
+                                requestAnimationFrame(() => {
+                                    c.style.opacity = '1';
+                                    c.style.transform = 'scale(0.95)';
+                                });
+                            }, delayBetweenTurns * (index + 1));
+                        });
+
+                        // Resolve Trick
+                        setTimeout(() => {
+                            playArea.innerHTML = ''; 
+                            userTricks++;
+                            cardsPlayedThisRound++;
+                            document.getElementById('user-trick-text').innerText = `${userTricks}/${userBid} Tricks`;
+                            
+                            if(userTricks > userBid) {
+                                let totalBags = baseBags + (userTricks - userBid);
+                                document.getElementById('user-score-text').innerText = `272 (${totalBags} bags)`;
+                            }
+
+                            // End of Round Check
+                            if (cardsPlayedThisRound >= 13) {
+                                turnPrompt.innerText = "Round Over! Shuffling deck...";
+                                turnPrompt.style.backgroundColor = "rgba(0, 0, 150, 0.9)";
+                                setTimeout(startNewRound, 2500);
+                            } else {
+                                turnPrompt.innerText = "Your turn! Click a card to play.";
+                                turnPrompt.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
+                            }
+                        }, delayBetweenTurns * opponentPlays.length + 1200);
+                    });
+                });
+            }
+
+            // Start game
+            startNewRound();
         });
     </script>
 </body>
