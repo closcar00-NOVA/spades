@@ -7,45 +7,25 @@
     <style>
         /* --- Base & Table Setup --- */
         body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #000; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: white;
-            overflow: hidden;
-            user-select: none;
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: #000; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white; overflow: hidden; user-select: none;
         }
 
         #game-board {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-sizing: border-box;
-            border: 15px solid rgba(0, 0, 0, 0.4); 
+            position: relative; width: 100%; height: 100%;
+            display: flex; justify-content: center; align-items: center;
+            box-sizing: border-box; border: 15px solid rgba(0, 0, 0, 0.4); 
             box-shadow: inset 0 0 50px rgba(0,0,0,0.8);
             background-image: url('green-felt-texture.png'); 
-            background-size: cover;
-            background-position: center;
-            transition: filter 0.3s ease;
+            background-size: cover; background-position: center; transition: filter 0.3s ease;
         }
 
         /* --- UI Elements --- */
         .btn {
-            background-color: #fca311;
-            border: none;
-            border-radius: 4px;
-            padding: 8px 12px;
-            cursor: pointer;
-            font-weight: bold;
-            color: #000;
-            font-size: 16px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            transition: transform 0.1s;
+            background-color: #fca311; border: none; border-radius: 4px;
+            padding: 8px 12px; cursor: pointer; font-weight: bold; color: #000;
+            font-size: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: transform 0.1s;
         }
         .btn:active { transform: scale(0.95); }
 
@@ -53,105 +33,47 @@
         #top-right-ui { position: absolute; top: 15px; right: 15px; display: flex; gap: 10px; z-index: 30; }
         
         #dropdown-menu {
-            display: none;
-            position: absolute;
-            right: 0;
-            top: 45px;
-            background-color: rgba(0, 0, 0, 0.9);
-            padding: 10px;
-            border-radius: 8px;
-            width: 140px;
-            box-shadow: 0px 4px 10px rgba(0,0,0,0.5);
+            display: none; position: absolute; right: 0; top: 45px;
+            background-color: rgba(0, 0, 0, 0.9); padding: 10px; border-radius: 8px;
+            width: 140px; box-shadow: 0px 4px 10px rgba(0,0,0,0.5);
         }
 
         .menu-item {
-            background: none;
-            border: none;
-            color: white;
-            padding: 8px;
-            width: 100%;
-            text-align: left;
-            cursor: pointer;
-            font-size: 14px;
-            border-bottom: 1px solid #444;
+            background: none; border: none; color: white; padding: 8px; width: 100%;
+            text-align: left; cursor: pointer; font-size: 14px; border-bottom: 1px solid #444;
         }
         .menu-item:last-child { border-bottom: none; }
         .menu-item:hover { color: #fca311; }
 
-        /* Settings Modal */
         #settings-modal {
-            display: none;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: rgba(0, 0, 0, 0.95);
-            padding: 25px 40px;
-            border-radius: 12px;
-            border: 2px solid #fca311;
-            z-index: 100;
-            text-align: center;
-            box-shadow: 0px 10px 40px rgba(0,0,0,0.8);
+            display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.95); padding: 25px 40px; border-radius: 12px;
+            border: 2px solid #fca311; z-index: 100; text-align: center; box-shadow: 0px 10px 40px rgba(0,0,0,0.8);
         }
         #settings-modal h2 { margin-top: 0; color: #fca311; }
 
         #scoreboard {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            background-color: rgba(0, 0, 0, 0.8);
-            padding: 15px;
-            border-radius: 8px;
-            font-size: 14px;
-            box-shadow: 0px 4px 8px rgba(0,0,0,0.5);
-            border: 1px solid #444;
+            position: absolute; bottom: 20px; right: 20px;
+            background-color: rgba(0, 0, 0, 0.8); padding: 15px; border-radius: 8px;
+            font-size: 14px; box-shadow: 0px 4px 8px rgba(0,0,0,0.5); border: 1px solid #444;
         }
         #scoreboard h3 { margin: 0 0 10px 0; color: #fca311; text-align: center; font-size: 16px; }
         .score-row { display: flex; justify-content: space-between; gap: 20px; margin-bottom: 5px; }
 
         #turn-prompt {
-            position: absolute;
-            bottom: 240px;
-            background-color: rgba(0, 0, 0, 0.8);
-            padding: 10px 25px;
-            border-radius: 20px;
-            font-size: 15px;
-            z-index: 10;
-            pointer-events: none; 
-            transition: background-color 0.3s;
-            border: 1px solid #555;
-            box-shadow: 0px 4px 10px rgba(0,0,0,0.4);
+            position: absolute; bottom: 240px; background-color: rgba(0, 0, 0, 0.8);
+            padding: 10px 25px; border-radius: 20px; font-size: 15px; z-index: 10;
+            pointer-events: none; transition: background-color 0.3s;
+            border: 1px solid #555; box-shadow: 0px 4px 10px rgba(0,0,0,0.4);
         }
 
         /* --- Player Areas & Avatars --- */
-        .player-area {
-            position: absolute;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .avatar-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
+        .player-area { position: absolute; text-align: center; display: flex; flex-direction: column; align-items: center; }
+        .avatar-container { display: flex; flex-direction: column; align-items: center; margin-bottom: 10px; }
         .avatar {
-            width: 65px;
-            height: 65px;
-            border-radius: 50%;
-            border: 3px solid #fca311;
-            background-color: #222;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 5px;
-            box-shadow: 0px 4px 8px rgba(0,0,0,0.5);
-            background-size: cover;
-            background-position: center;
+            width: 65px; height: 65px; border-radius: 50%; border: 3px solid #fca311; background-color: #222;
+            display: flex; justify-content: center; align-items: center; margin-bottom: 5px;
+            box-shadow: 0px 4px 8px rgba(0,0,0,0.5); background-size: cover; background-position: center;
         }
 
         #avatar-helen { background-image: url('helen-avatar.png'); }
@@ -159,14 +81,7 @@
         #avatar-alice { background-image: url('alice-avatar.png'); }
         #avatar-user { background-image: url('user-avatar.png'); }
 
-        .player-stats { 
-            font-size: 13px; 
-            line-height: 1.4; 
-            background: rgba(0,0,0,0.7); 
-            padding: 6px 12px; 
-            border-radius: 6px;
-            border: 1px solid #444;
-        }
+        .player-stats { font-size: 13px; line-height: 1.4; background: rgba(0,0,0,0.7); padding: 6px 12px; border-radius: 6px; border: 1px solid #444; }
         
         #player-top { top: 20px; left: 50%; transform: translateX(-50%); }
         #player-bottom { bottom: 20px; left: 50%; transform: translateX(-50%); }
@@ -175,47 +90,23 @@
 
         /* --- Cards --- */
         .card-back {
-            width: 50px;
-            height: 75px;
-            background-color: #6a040f;
-            border: 2px solid #fff;
-            border-radius: 6px;
+            width: 50px; height: 75px; background-color: #6a040f; border: 2px solid #fff; border-radius: 6px;
             background-image: repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(255,255,255,0.1) 5px, rgba(255,255,255,0.1) 10px);
             box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
         }
 
         .card-face {
-            width: 70px;
-            height: 105px;
-            background-color: #fff;
-            border: 1px solid #999;
-            border-radius: 6px;
-            color: #000;
-            position: relative;
-            cursor: pointer;
-            transition: transform 0.2s, margin-top 0.2s;
+            width: 70px; height: 105px; background-color: #fff; border: 1px solid #999; border-radius: 6px;
+            color: #000; position: relative; cursor: pointer; transition: transform 0.2s, margin-top 0.2s;
             box-shadow: 2px 4px 8px rgba(0,0,0,0.5);
         }
 
         .card-face:hover { transform: translateY(-15px); }
         .card-face.red { color: #d00000; }
         
-        .card-value-top {
-            position: absolute; top: 4px; left: 4px;
-            display: flex; flex-direction: column; align-items: center;
-            font-size: 14px; font-weight: bold; line-height: 1;
-        }
-        .card-value-bottom {
-            position: absolute; bottom: 4px; right: 4px;
-            display: flex; flex-direction: column; align-items: center;
-            font-size: 14px; font-weight: bold; line-height: 1;
-            transform: rotate(180deg);
-        }
-        .card-center-suit {
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 28px;
-        }
+        .card-value-top { position: absolute; top: 4px; left: 4px; display: flex; flex-direction: column; align-items: center; font-size: 14px; font-weight: bold; line-height: 1; }
+        .card-value-bottom { position: absolute; bottom: 4px; right: 4px; display: flex; flex-direction: column; align-items: center; font-size: 14px; font-weight: bold; line-height: 1; transform: rotate(180deg); }
+        .card-center-suit { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 28px; }
 
         .hand-horizontal { display: flex; gap: -20px; }
         .hand-horizontal .card-back { margin-left: -25px; }
@@ -229,37 +120,15 @@
         .my-hand .card-face { margin-left: -30px; }
         .my-hand .card-face:first-child { margin-left: 0; }
 
-        /* Center Play Area & Animations */
-        #play-area {
-            position: absolute;
-            width: 250px;
-            height: 250px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .played-card {
-            position: absolute;
-            pointer-events: none;
-            margin: 0 !important;
-            transform: scale(0.95);
-        }
-
-        .card-drop-anim {
-            opacity: 0;
-            transform: scale(1.3);
-            transition: opacity 0.3s ease-out, transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
+        #play-area { position: absolute; width: 250px; height: 250px; display: flex; justify-content: center; align-items: center; }
+        .played-card { position: absolute; pointer-events: none; margin: 0 !important; transform: scale(0.95); }
+        .card-drop-anim { opacity: 0; transform: scale(1.3); transition: opacity 0.3s ease-out, transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     </style>
 </head>
 <body>
 
     <div id="game-board">
-        <!-- Top UI -->
-        <div id="top-left-ui">
-            <button class="btn" style="background-color: #8a2be2; color: white;">🚪 Exit</button>
-        </div>
+        <div id="top-left-ui"><button class="btn" style="background-color: #8a2be2; color: white;">🚪 Exit</button></div>
         
         <div id="top-right-ui">
             <button id="sound-btn" class="btn">🔊</button>
@@ -273,7 +142,6 @@
             </div>
         </div>
 
-        <!-- Settings Modal -->
         <div id="settings-modal">
             <h2>Game Settings</h2>
             <div style="margin-bottom: 20px; font-size: 16px;">
@@ -283,77 +151,45 @@
             <button id="close-settings-btn" class="btn" style="width: 100%;">Save & Close</button>
         </div>
 
-        <!-- Players -->
         <div id="player-top" class="player-area">
-            <div class="avatar-container">
-                <div class="avatar" id="avatar-helen"></div>
-                <div class="player-stats">Helen<br><span id="helen-trick-text">0/1 Tricks</span></div>
-            </div>
-            <div class="hand-horizontal">
-                <script>for(let i=0; i<13; i++) document.write('<div class="card-back"></div>');</script>
-            </div>
+            <div class="avatar-container"><div class="avatar" id="avatar-helen"></div><div class="player-stats">Helen<br><span id="helen-trick-text">0/1 Tricks</span></div></div>
+            <div class="hand-horizontal"><script>for(let i=0; i<13; i++) document.write('<div class="card-back"></div>');</script></div>
         </div>
 
         <div id="player-left" class="player-area">
-            <div class="avatar-container">
-                <div class="avatar" id="avatar-frank"></div>
-                <div class="player-stats">Frank<br><span id="frank-trick-text">0/2 Tricks</span></div>
-            </div>
-            <div class="hand-vertical">
-                <script>for(let i=0; i<13; i++) document.write('<div class="card-back"></div>');</script>
-            </div>
+            <div class="avatar-container"><div class="avatar" id="avatar-frank"></div><div class="player-stats">Frank<br><span id="frank-trick-text">0/2 Tricks</span></div></div>
+            <div class="hand-vertical"><script>for(let i=0; i<13; i++) document.write('<div class="card-back"></div>');</script></div>
         </div>
 
         <div id="player-right" class="player-area">
-            <div class="avatar-container">
-                <div class="avatar" id="avatar-alice"></div>
-                <div class="player-stats">Alice<br><span id="alice-trick-text">0/3 Tricks</span></div>
-            </div>
-            <div class="hand-vertical">
-                <script>for(let i=0; i<13; i++) document.write('<div class="card-back"></div>');</script>
-            </div>
+            <div class="avatar-container"><div class="avatar" id="avatar-alice"></div><div class="player-stats">Alice<br><span id="alice-trick-text">0/3 Tricks</span></div></div>
+            <div class="hand-vertical"><script>for(let i=0; i<13; i++) document.write('<div class="card-back"></div>');</script></div>
         </div>
 
-        <!-- Center Play Area -->
         <div id="play-area"></div>
         <div id="turn-prompt">Dealing cards...</div>
 
-        <!-- You (Bottom Player) -->
         <div id="player-bottom" class="player-area">
             <div class="my-hand" id="my-cards"></div>
             <div class="avatar-container" style="margin-top: 20px; flex-direction: row; gap: 15px;">
                 <div class="avatar" id="avatar-user"></div>
-                <div class="player-stats" style="text-align: left;">
-                    You<br><span id="user-trick-text">0/3 Tricks</span>
-                </div>
+                <div class="player-stats" style="text-align: left;">You<br><span id="user-trick-text">0/3 Tricks</span></div>
             </div>
         </div>
 
-        <!-- Scoreboard -->
         <div id="scoreboard">
             <h3>Current Score</h3>
-            <div class="score-row">
-                <span>You & Helen</span>
-                <span id="user-score-text">272 (2 bags)</span>
-            </div>
-            <div class="score-row">
-                <span>Frank & Alice</span>
-                <span>149 (9 bags)</span>
-            </div>
+            <div class="score-row"><span>You & Helen</span><span id="user-score-text">272 (2 bags)</span></div>
+            <div class="score-row"><span>Frank & Alice</span><span>149 (9 bags)</span></div>
         </div>
     </div>
 
-    <!-- Game Logic -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            
             // --- UI Menus & Settings ---
             const soundBtn = document.getElementById('sound-btn');
             let isMuted = false;
-            soundBtn.addEventListener('click', () => {
-                isMuted = !isMuted;
-                soundBtn.innerText = isMuted ? '🔇' : '🔊';
-            });
+            soundBtn.addEventListener('click', () => { isMuted = !isMuted; soundBtn.innerText = isMuted ? '🔇' : '🔊'; });
 
             const menuBtn = document.getElementById('menu-btn');
             const dropdownMenu = document.getElementById('dropdown-menu');
@@ -363,28 +199,11 @@
             const brightnessSlider = document.getElementById('brightness-slider');
             const gameBoard = document.getElementById('game-board');
 
-            menuBtn.addEventListener('click', () => {
-                dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
-            });
-            
-            settingsBtn.addEventListener('click', () => {
-                dropdownMenu.style.display = 'none';
-                settingsModal.style.display = 'block';
-            });
-
-            closeSettingsBtn.addEventListener('click', () => {
-                settingsModal.style.display = 'none';
-            });
-
-            brightnessSlider.addEventListener('input', (e) => {
-                gameBoard.style.filter = `brightness(${e.target.value}%)`;
-            });
-
-            document.addEventListener('click', (event) => {
-                if (event.target !== menuBtn && !dropdownMenu.contains(event.target)) {
-                    dropdownMenu.style.display = 'none';
-                }
-            });
+            menuBtn.addEventListener('click', () => { dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block'; });
+            settingsBtn.addEventListener('click', () => { dropdownMenu.style.display = 'none'; settingsModal.style.display = 'block'; });
+            closeSettingsBtn.addEventListener('click', () => { settingsModal.style.display = 'none'; });
+            brightnessSlider.addEventListener('input', (e) => { gameBoard.style.filter = `brightness(${e.target.value}%)`; });
+            document.addEventListener('click', (event) => { if (event.target !== menuBtn && !dropdownMenu.contains(event.target)) dropdownMenu.style.display = 'none'; });
 
             // --- Spades Logic & Deck Generation ---
             const suits = ['♠', '♥', '♣', '♦'];
@@ -397,10 +216,15 @@
             const playArea = document.getElementById('play-area');
             const turnPrompt = document.getElementById('turn-prompt');
             
-            // Player Trick Tracking
             let tricks = { 'You': 0, 'Helen': 0, 'Frank': 0, 'Alice': 0 };
             let bids = { 'You': 3, 'Helen': 1, 'Frank': 2, 'Alice': 3 };
             let cardsPlayedThisRound = 0;
+            
+            const SEAT_ORDER = ['You', 'Frank', 'Helen', 'Alice'];
+            let currentTrickWinner = 'You'; // You lead the very first round by default
+            let currentTrickQueue = [];
+            let currentTrickCards = [];
+            let isUserTurnActive = false;
 
             function updateTrickUI() {
                 document.getElementById('user-trick-text').innerText = `${tricks['You']}/${bids['You']} Tricks`;
@@ -414,7 +238,6 @@
                 tricks = { 'You': 0, 'Helen': 0, 'Frank': 0, 'Alice': 0 };
                 updateTrickUI();
                 
-                // Build and shuffle deck
                 deck = [];
                 suits.forEach(suit => {
                     const color = (suit === '♥' || suit === '♦') ? 'red' : 'black';
@@ -425,7 +248,6 @@
                     [deck[i], deck[j]] = [deck[j], deck[i]];
                 }
 
-                // Deal and sort user hand
                 const initialHand = deck.splice(0, 13);
                 initialHand.sort((a, b) => {
                     if (suitOrder[a.suit] !== suitOrder[b.suit]) return suitOrder[a.suit] - suitOrder[b.suit];
@@ -438,136 +260,116 @@
                     cardDiv.className = `card-face ${card.color === 'red' ? 'red' : ''}`;
                     cardDiv.dataset.val = card.val;
                     cardDiv.dataset.suit = card.suit;
-                    cardDiv.innerHTML = `
-                        <div class="card-value-top">${card.val}<br>${card.suit}</div>
-                        <div class="card-center-suit">${card.suit}</div>
-                        <div class="card-value-bottom">${card.val}<br>${card.suit}</div>
-                    `;
+                    cardDiv.innerHTML = `<div class="card-value-top">${card.val}<br>${card.suit}</div><div class="card-center-suit">${card.suit}</div><div class="card-value-bottom">${card.val}<br>${card.suit}</div>`;
+                    cardDiv.addEventListener('click', handleUserCardClick);
                     myHandContainer.appendChild(cardDiv);
                 });
 
-                turnPrompt.innerText = "Your turn! Click a card to play.";
-                turnPrompt.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
-                bindCardClicks();
+                currentTrickWinner = 'You'; 
+                startTrickCycle();
             }
 
-            // Evaluate the winner of the 4 cards played
             function resolveTrickWinner(trickCards) {
                 let leadSuit = trickCards[0].suit;
                 let winningCard = trickCards[0];
 
                 for (let i = 1; i < trickCards.length; i++) {
                     let c = trickCards[i];
-                    
-                    // If current card is a spade and winning card is not
-                    if (c.suit === '♠' && winningCard.suit !== '♠') {
-                        winningCard = c;
-                    } 
-                    // If both are spades, highest value wins
-                    else if (c.suit === '♠' && winningCard.suit === '♠') {
-                        if (valOrder[c.val] > valOrder[winningCard.val]) winningCard = c;
-                    } 
-                    // If current card matches lead suit (and winning card is not a spade)
-                    else if (c.suit === leadSuit && winningCard.suit !== '♠') {
-                        if (valOrder[c.val] > valOrder[winningCard.val]) winningCard = c;
-                    }
+                    if (c.suit === '♠' && winningCard.suit !== '♠') { winningCard = c; } 
+                    else if (c.suit === '♠' && winningCard.suit === '♠') { if (valOrder[c.val] > valOrder[winningCard.val]) winningCard = c; } 
+                    else if (c.suit === leadSuit && winningCard.suit !== '♠') { if (valOrder[c.val] > valOrder[winningCard.val]) winningCard = c; }
                 }
-                
                 return winningCard.player;
             }
 
-            // --- Trick Engine ---
-            function bindCardClicks() {
-                const myCards = document.querySelectorAll('#my-cards .card-face');
-                myCards.forEach(card => {
-                    card.addEventListener('click', function() {
-                        if (this.classList.contains('played') || turnPrompt.innerText !== "Your turn! Click a card to play.") return;
+            // --- Dynamic Trick Engine ---
+            function startTrickCycle() {
+                currentTrickCards = [];
+                let leaderIdx = SEAT_ORDER.indexOf(currentTrickWinner);
+                currentTrickQueue = SEAT_ORDER.slice(leaderIdx).concat(SEAT_ORDER.slice(0, leaderIdx));
+                processNextInQueue();
+            }
 
-                        // 1. Play User Card
-                        this.style.visibility = 'hidden';
-                        this.classList.add('played');
-                        const playedCard = this.cloneNode(true);
-                        playedCard.style.visibility = 'visible';
-                        playedCard.className += ' played-card card-drop-anim';
-                        playedCard.style.bottom = '10px'; 
-                        playArea.appendChild(playedCard);
+            function processNextInQueue() {
+                if (currentTrickQueue.length === 0) {
+                    finishTrick();
+                    return;
+                }
 
-                        requestAnimationFrame(() => {
-                            playedCard.style.opacity = '1';
-                            playedCard.style.transform = 'scale(0.95)';
-                        });
+                let nextActivePlayer = currentTrickQueue.shift();
 
-                        turnPrompt.innerText = "Waiting for opponents...";
-                        turnPrompt.style.backgroundColor = "rgba(150, 0, 0, 0.8)";
+                if (nextActivePlayer === 'You') {
+                    isUserTurnActive = true;
+                    turnPrompt.innerText = "Your turn! Click a card to play.";
+                    turnPrompt.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
+                } else {
+                    isUserTurnActive = false;
+                    turnPrompt.innerText = `${nextActivePlayer} is thinking...`;
+                    turnPrompt.style.backgroundColor = "rgba(150, 0, 0, 0.8)";
+                    
+                    setTimeout(() => {
+                        let aiCard = deck.pop(); // Using remaining deck placeholder for AI logic
+                        playCardToTable(nextActivePlayer, aiCard.val, aiCard.suit, aiCard.color);
+                        processNextInQueue();
+                    }, 1000);
+                }
+            }
 
-                        // 2. Track Trick Data
-                        let currentTrick = [];
-                        currentTrick.push({ 
-                            player: 'You', 
-                            val: this.dataset.val, 
-                            suit: this.dataset.suit 
-                        });
+            function handleUserCardClick(event) {
+                if (!isUserTurnActive || this.classList.contains('played')) return;
 
-                        // 3. Dynamic Opponent Plays from remaining deck
-                        const opponentPlays = [
-                            { player: 'Frank', ...deck.pop(), pos: { left: '10px', top: '50px' } },
-                            { player: 'Helen', ...deck.pop(), pos: { top: '10px' } },
-                            { player: 'Alice', ...deck.pop(), pos: { right: '10px', top: '50px' } }
-                        ];
+                isUserTurnActive = false;
+                this.style.visibility = 'hidden';
+                this.classList.add('played');
+                
+                let colorClass = this.classList.contains('red') ? 'red' : '';
+                playCardToTable('You', this.dataset.val, this.dataset.suit, colorClass, this);
+                processNextInQueue();
+            }
 
-                        const delayBetweenTurns = 600;
+            function playCardToTable(player, val, suit, color, originalElement = null) {
+                currentTrickCards.push({ player: player, val: val, suit: suit });
 
-                        opponentPlays.forEach((play, index) => {
-                            currentTrick.push(play);
-                            setTimeout(() => {
-                                const c = document.createElement('div');
-                                c.className = `card-face played-card card-drop-anim ${play.color}`;
-                                c.innerHTML = `
-                                    <div class="card-value-top">${play.val}<br>${play.suit}</div>
-                                    <div class="card-center-suit">${play.suit}</div>
-                                    <div class="card-value-bottom">${play.val}<br>${play.suit}</div>`;
-                                Object.assign(c.style, play.pos);
-                                playArea.appendChild(c);
+                const playedCard = document.createElement('div');
+                playedCard.className = `card-face played-card card-drop-anim ${color}`;
+                playedCard.innerHTML = `<div class="card-value-top">${val}<br>${suit}</div><div class="card-center-suit">${suit}</div><div class="card-value-bottom">${val}<br>${suit}</div>`;
+                
+                if (player === 'You') { playedCard.style.bottom = '10px'; }
+                else if (player === 'Frank') { Object.assign(playedCard.style, { left: '10px', top: '50px' }); }
+                else if (player === 'Helen') { Object.assign(playedCard.style, { top: '10px' }); }
+                else if (player === 'Alice') { Object.assign(playedCard.style, { right: '10px', top: '50px' }); }
 
-                                requestAnimationFrame(() => {
-                                    c.style.opacity = '1';
-                                    c.style.transform = 'scale(0.95)';
-                                });
-                            }, delayBetweenTurns * (index + 1));
-                        });
+                playArea.appendChild(playedCard);
 
-                        // 4. Resolve Trick and Award Points
-                        setTimeout(() => {
-                            let trickWinner = resolveTrickWinner(currentTrick);
-                            
-                            // Visual prompt for who won
-                            turnPrompt.innerText = `${trickWinner} wins the trick!`;
-                            turnPrompt.style.backgroundColor = "rgba(0, 100, 0, 0.9)";
-                            
-                            tricks[trickWinner]++;
-                            cardsPlayedThisRound++;
-                            updateTrickUI();
-                            
-                            // Clear table and proceed after a short delay
-                            setTimeout(() => {
-                                playArea.innerHTML = ''; 
-                                
-                                if (cardsPlayedThisRound >= 13) {
-                                    turnPrompt.innerText = "Round Over! Shuffling deck...";
-                                    turnPrompt.style.backgroundColor = "rgba(0, 0, 150, 0.9)";
-                                    setTimeout(startNewRound, 2500);
-                                } else {
-                                    turnPrompt.innerText = "Your turn! Click a card to play.";
-                                    turnPrompt.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
-                                }
-                            }, 1500);
-
-                        }, delayBetweenTurns * opponentPlays.length + 800);
-                    });
+                requestAnimationFrame(() => {
+                    playedCard.style.opacity = '1';
+                    playedCard.style.transform = 'scale(0.95)';
                 });
             }
 
-            // Start game
+            function finishTrick() {
+                currentTrickWinner = resolveTrickWinner(currentTrickCards);
+                
+                turnPrompt.innerText = `${currentTrickWinner} wins the trick!`;
+                turnPrompt.style.backgroundColor = "rgba(0, 100, 0, 0.9)";
+                
+                tricks[currentTrickWinner]++;
+                cardsPlayedThisRound++;
+                updateTrickUI();
+                
+                setTimeout(() => {
+                    playArea.innerHTML = ''; 
+                    
+                    if (cardsPlayedThisRound >= 13) {
+                        turnPrompt.innerText = "Round Over! Shuffling deck...";
+                        turnPrompt.style.backgroundColor = "rgba(0, 0, 150, 0.9)";
+                        setTimeout(startNewRound, 2500);
+                    } else {
+                        startTrickCycle(); 
+                    }
+                }, 1500);
+            }
+
             startNewRound();
         });
     </script>
