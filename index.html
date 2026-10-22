@@ -287,7 +287,7 @@
         <div id="player-top" class="player-area">
             <div class="avatar-container">
                 <div class="avatar" id="avatar-helen"></div>
-                <div class="player-stats">Helen<br>0/1 Tricks</div>
+                <div class="player-stats">Helen<br><span id="helen-trick-text">0/1 Tricks</span></div>
             </div>
             <div class="hand-horizontal">
                 <script>for(let i=0; i<13; i++) document.write('<div class="card-back"></div>');</script>
@@ -297,7 +297,7 @@
         <div id="player-left" class="player-area">
             <div class="avatar-container">
                 <div class="avatar" id="avatar-frank"></div>
-                <div class="player-stats">Frank<br>0/2 Tricks</div>
+                <div class="player-stats">Frank<br><span id="frank-trick-text">0/2 Tricks</span></div>
             </div>
             <div class="hand-vertical">
                 <script>for(let i=0; i<13; i++) document.write('<div class="card-back"></div>');</script>
@@ -307,7 +307,7 @@
         <div id="player-right" class="player-area">
             <div class="avatar-container">
                 <div class="avatar" id="avatar-alice"></div>
-                <div class="player-stats">Alice<br>2/3 Tricks</div>
+                <div class="player-stats">Alice<br><span id="alice-trick-text">0/3 Tricks</span></div>
             </div>
             <div class="hand-vertical">
                 <script>for(let i=0; i<13; i++) document.write('<div class="card-back"></div>');</script>
@@ -386,7 +386,7 @@
                 }
             });
 
-            // --- Dynamic Deck Generation ---
+            // --- Spades Logic & Deck Generation ---
             const suits = ['♠', '♥', '♣', '♦'];
             const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
             const suitOrder = { '♠': 1, '♥': 2, '♣': 3, '♦': 4 };
@@ -397,15 +397,22 @@
             const playArea = document.getElementById('play-area');
             const turnPrompt = document.getElementById('turn-prompt');
             
-            let userTricks = 0;
-            let userBid = 3;
-            let baseBags = 2; 
+            // Player Trick Tracking
+            let tricks = { 'You': 0, 'Helen': 0, 'Frank': 0, 'Alice': 0 };
+            let bids = { 'You': 3, 'Helen': 1, 'Frank': 2, 'Alice': 3 };
             let cardsPlayedThisRound = 0;
+
+            function updateTrickUI() {
+                document.getElementById('user-trick-text').innerText = `${tricks['You']}/${bids['You']} Tricks`;
+                document.getElementById('helen-trick-text').innerText = `${tricks['Helen']}/${bids['Helen']} Tricks`;
+                document.getElementById('frank-trick-text').innerText = `${tricks['Frank']}/${bids['Frank']} Tricks`;
+                document.getElementById('alice-trick-text').innerText = `${tricks['Alice']}/${bids['Alice']} Tricks`;
+            }
 
             function startNewRound() {
                 cardsPlayedThisRound = 0;
-                userTricks = 0;
-                document.getElementById('user-trick-text').innerText = `${userTricks}/${userBid} Tricks`;
+                tricks = { 'You': 0, 'Helen': 0, 'Frank': 0, 'Alice': 0 };
+                updateTrickUI();
                 
                 // Build and shuffle deck
                 deck = [];
@@ -418,7 +425,7 @@
                     [deck[i], deck[j]] = [deck[j], deck[i]];
                 }
 
-                // Deal and sort hand
+                // Deal and sort user hand
                 const initialHand = deck.splice(0, 13);
                 initialHand.sort((a, b) => {
                     if (suitOrder[a.suit] !== suitOrder[b.suit]) return suitOrder[a.suit] - suitOrder[b.suit];
@@ -429,6 +436,8 @@
                 initialHand.forEach(card => {
                     const cardDiv = document.createElement('div');
                     cardDiv.className = `card-face ${card.color === 'red' ? 'red' : ''}`;
+                    cardDiv.dataset.val = card.val;
+                    cardDiv.dataset.suit = card.suit;
                     cardDiv.innerHTML = `
                         <div class="card-value-top">${card.val}<br>${card.suit}</div>
                         <div class="card-center-suit">${card.suit}</div>
@@ -442,14 +451,39 @@
                 bindCardClicks();
             }
 
-            // --- Trick & Animation Logic ---
+            // Evaluate the winner of the 4 cards played
+            function resolveTrickWinner(trickCards) {
+                let leadSuit = trickCards[0].suit;
+                let winningCard = trickCards[0];
+
+                for (let i = 1; i < trickCards.length; i++) {
+                    let c = trickCards[i];
+                    
+                    // If current card is a spade and winning card is not
+                    if (c.suit === '♠' && winningCard.suit !== '♠') {
+                        winningCard = c;
+                    } 
+                    // If both are spades, highest value wins
+                    else if (c.suit === '♠' && winningCard.suit === '♠') {
+                        if (valOrder[c.val] > valOrder[winningCard.val]) winningCard = c;
+                    } 
+                    // If current card matches lead suit (and winning card is not a spade)
+                    else if (c.suit === leadSuit && winningCard.suit !== '♠') {
+                        if (valOrder[c.val] > valOrder[winningCard.val]) winningCard = c;
+                    }
+                }
+                
+                return winningCard.player;
+            }
+
+            // --- Trick Engine ---
             function bindCardClicks() {
                 const myCards = document.querySelectorAll('#my-cards .card-face');
                 myCards.forEach(card => {
                     card.addEventListener('click', function() {
                         if (this.classList.contains('played') || turnPrompt.innerText !== "Your turn! Click a card to play.") return;
 
-                        // Play User Card
+                        // 1. Play User Card
                         this.style.visibility = 'hidden';
                         this.classList.add('played');
                         const playedCard = this.cloneNode(true);
@@ -466,16 +500,25 @@
                         turnPrompt.innerText = "Waiting for opponents...";
                         turnPrompt.style.backgroundColor = "rgba(150, 0, 0, 0.8)";
 
-                        // Dynamic Opponent Plays from remaining deck
+                        // 2. Track Trick Data
+                        let currentTrick = [];
+                        currentTrick.push({ 
+                            player: 'You', 
+                            val: this.dataset.val, 
+                            suit: this.dataset.suit 
+                        });
+
+                        // 3. Dynamic Opponent Plays from remaining deck
                         const opponentPlays = [
-                            { ...deck.pop(), pos: { left: '10px', top: '50px' } },
-                            { ...deck.pop(), pos: { top: '10px' } },
-                            { ...deck.pop(), pos: { right: '10px', top: '50px' } }
+                            { player: 'Frank', ...deck.pop(), pos: { left: '10px', top: '50px' } },
+                            { player: 'Helen', ...deck.pop(), pos: { top: '10px' } },
+                            { player: 'Alice', ...deck.pop(), pos: { right: '10px', top: '50px' } }
                         ];
 
                         const delayBetweenTurns = 600;
 
                         opponentPlays.forEach((play, index) => {
+                            currentTrick.push(play);
                             setTimeout(() => {
                                 const c = document.createElement('div');
                                 c.className = `card-face played-card card-drop-anim ${play.color}`;
@@ -493,28 +536,33 @@
                             }, delayBetweenTurns * (index + 1));
                         });
 
-                        // Resolve Trick
+                        // 4. Resolve Trick and Award Points
                         setTimeout(() => {
-                            playArea.innerHTML = ''; 
-                            userTricks++;
-                            cardsPlayedThisRound++;
-                            document.getElementById('user-trick-text').innerText = `${userTricks}/${userBid} Tricks`;
+                            let trickWinner = resolveTrickWinner(currentTrick);
                             
-                            if(userTricks > userBid) {
-                                let totalBags = baseBags + (userTricks - userBid);
-                                document.getElementById('user-score-text').innerText = `272 (${totalBags} bags)`;
-                            }
+                            // Visual prompt for who won
+                            turnPrompt.innerText = `${trickWinner} wins the trick!`;
+                            turnPrompt.style.backgroundColor = "rgba(0, 100, 0, 0.9)";
+                            
+                            tricks[trickWinner]++;
+                            cardsPlayedThisRound++;
+                            updateTrickUI();
+                            
+                            // Clear table and proceed after a short delay
+                            setTimeout(() => {
+                                playArea.innerHTML = ''; 
+                                
+                                if (cardsPlayedThisRound >= 13) {
+                                    turnPrompt.innerText = "Round Over! Shuffling deck...";
+                                    turnPrompt.style.backgroundColor = "rgba(0, 0, 150, 0.9)";
+                                    setTimeout(startNewRound, 2500);
+                                } else {
+                                    turnPrompt.innerText = "Your turn! Click a card to play.";
+                                    turnPrompt.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
+                                }
+                            }, 1500);
 
-                            // End of Round Check
-                            if (cardsPlayedThisRound >= 13) {
-                                turnPrompt.innerText = "Round Over! Shuffling deck...";
-                                turnPrompt.style.backgroundColor = "rgba(0, 0, 150, 0.9)";
-                                setTimeout(startNewRound, 2500);
-                            } else {
-                                turnPrompt.innerText = "Your turn! Click a card to play.";
-                                turnPrompt.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
-                            }
-                        }, delayBetweenTurns * opponentPlays.length + 1200);
+                        }, delayBetweenTurns * opponentPlays.length + 800);
                     });
                 });
             }
