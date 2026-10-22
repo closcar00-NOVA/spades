@@ -45,12 +45,23 @@
         .menu-item:last-child { border-bottom: none; }
         .menu-item:hover { color: #fca311; }
 
-        #settings-modal {
+        /* Modals */
+        #settings-modal, #bidding-modal {
             display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background-color: rgba(0, 0, 0, 0.95); padding: 25px 40px; border-radius: 12px;
             border: 2px solid #fca311; z-index: 100; text-align: center; box-shadow: 0px 10px 40px rgba(0,0,0,0.8);
         }
-        #settings-modal h2 { margin-top: 0; color: #fca311; }
+        #settings-modal h2, #bidding-modal h2 { margin-top: 0; color: #fca311; }
+        
+        /* Bidding UI Specifics */
+        .bid-grid {
+            display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; margin: 20px 0;
+        }
+        .bid-btn {
+            background-color: #333; color: white; border: 2px solid #555; padding: 10px; font-size: 18px; font-weight: bold; cursor: pointer; border-radius: 8px; transition: all 0.2s;
+        }
+        .bid-btn:hover { background-color: #555; border-color: #fca311; }
+        .bid-btn.selected { background-color: #fca311; color: black; border-color: white; }
 
         #scoreboard {
             position: absolute; bottom: 20px; right: 20px;
@@ -151,18 +162,28 @@
             <button id="close-settings-btn" class="btn" style="width: 100%;">Save & Close</button>
         </div>
 
+        <!-- NEW: Bidding Modal -->
+        <div id="bidding-modal">
+            <h2>Place Your Bid</h2>
+            <p>Review your hand and predict how many tricks you will win.</p>
+            <div class="bid-grid" id="bid-buttons">
+                <!-- JS populates buttons 0-13 here -->
+            </div>
+            <button id="confirm-bid-btn" class="btn" style="width: 100%;" disabled>Confirm Bid</button>
+        </div>
+
         <div id="player-top" class="player-area">
-            <div class="avatar-container"><div class="avatar" id="avatar-helen"></div><div class="player-stats">Helen<br><span id="helen-trick-text">0/1 Tricks</span></div></div>
+            <div class="avatar-container"><div class="avatar" id="avatar-helen"></div><div class="player-stats">Helen<br><span id="helen-trick-text">0/0 Tricks</span></div></div>
             <div class="hand-horizontal"><script>for(let i=0; i<13; i++) document.write('<div class="card-back" id="helen-back-'+i+'"></div>');</script></div>
         </div>
 
         <div id="player-left" class="player-area">
-            <div class="avatar-container"><div class="avatar" id="avatar-frank"></div><div class="player-stats">Frank<br><span id="frank-trick-text">0/2 Tricks</span></div></div>
+            <div class="avatar-container"><div class="avatar" id="avatar-frank"></div><div class="player-stats">Frank<br><span id="frank-trick-text">0/0 Tricks</span></div></div>
             <div class="hand-vertical"><script>for(let i=0; i<13; i++) document.write('<div class="card-back" id="frank-back-'+i+'"></div>');</script></div>
         </div>
 
         <div id="player-right" class="player-area">
-            <div class="avatar-container"><div class="avatar" id="avatar-alice"></div><div class="player-stats">Alice<br><span id="alice-trick-text">0/3 Tricks</span></div></div>
+            <div class="avatar-container"><div class="avatar" id="avatar-alice"></div><div class="player-stats">Alice<br><span id="alice-trick-text">0/0 Tricks</span></div></div>
             <div class="hand-vertical"><script>for(let i=0; i<13; i++) document.write('<div class="card-back" id="alice-back-'+i+'"></div>');</script></div>
         </div>
 
@@ -173,14 +194,14 @@
             <div class="my-hand" id="my-cards"></div>
             <div class="avatar-container" style="margin-top: 20px; flex-direction: row; gap: 15px;">
                 <div class="avatar" id="avatar-user"></div>
-                <div class="player-stats" style="text-align: left;">You<br><span id="user-trick-text">0/3 Tricks</span></div>
+                <div class="player-stats" style="text-align: left;">You<br><span id="user-trick-text">0/0 Tricks</span></div>
             </div>
         </div>
 
         <div id="scoreboard">
             <h3>Current Score</h3>
-            <div class="score-row"><span>You & Helen</span><span id="user-score-text">272 (2 bags)</span></div>
-            <div class="score-row"><span>Frank & Alice</span><span>149 (9 bags)</span></div>
+            <div class="score-row"><span>You & Helen</span><span id="score-team1">0 (0 bags)</span></div>
+            <div class="score-row"><span>Frank & Alice</span><span id="score-team2">0 (0 bags)</span></div>
         </div>
     </div>
 
@@ -215,9 +236,30 @@
             const playArea = document.getElementById('play-area');
             const turnPrompt = document.getElementById('turn-prompt');
             
+            // --- BIDDING UI SETUP ---
+            const biddingModal = document.getElementById('bidding-modal');
+            const bidButtonsContainer = document.getElementById('bid-buttons');
+            const confirmBidBtn = document.getElementById('confirm-bid-btn');
+            let selectedBid = null;
+
+            for(let i=0; i<=13; i++) {
+                let b = document.createElement('button');
+                b.className = 'bid-btn';
+                b.innerText = i === 0 ? 'Nil' : i;
+                b.dataset.val = i;
+                b.addEventListener('click', function() {
+                    document.querySelectorAll('.bid-btn').forEach(btn => btn.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedBid = parseInt(this.dataset.val);
+                    confirmBidBtn.disabled = false;
+                });
+                bidButtonsContainer.appendChild(b);
+            }
+
             let tricks = { 'You': 0, 'Helen': 0, 'Frank': 0, 'Alice': 0 };
-            let bids = { 'You': 3, 'Helen': 1, 'Frank': 2, 'Alice': 3 };
+            let bids = { 'You': 0, 'Helen': 0, 'Frank': 0, 'Alice': 0 };
             let aiHands = { 'Helen': [], 'Frank': [], 'Alice': [] };
+            let currentTeamScores = { team1: 0, bags1: 0, team2: 0, bags2: 0 };
             
             let cardsPlayedThisRound = 0;
             const SEAT_ORDER = ['You', 'Frank', 'Helen', 'Alice'];
@@ -225,15 +267,18 @@
             let currentTrickQueue = [];
             let currentTrickCards = [];
             let isUserTurnActive = false;
+            let isBiddingPhase = false;
 
             function updateTrickUI() {
                 document.getElementById('user-trick-text').innerText = `${tricks['You']}/${bids['You']} Tricks`;
                 document.getElementById('helen-trick-text').innerText = `${tricks['Helen']}/${bids['Helen']} Tricks`;
                 document.getElementById('frank-trick-text').innerText = `${tricks['Frank']}/${bids['Frank']} Tricks`;
                 document.getElementById('alice-trick-text').innerText = `${tricks['Alice']}/${bids['Alice']} Tricks`;
+                
+                document.getElementById('score-team1').innerText = `${currentTeamScores.team1} (${currentTeamScores.bags1} bags)`;
+                document.getElementById('score-team2').innerText = `${currentTeamScores.team2} (${currentTeamScores.bags2} bags)`;
             }
 
-            // Restore AI facedown cards visually
             function resetVisualHands() {
                 ['helen', 'frank', 'alice'].forEach(player => {
                     for(let i=0; i<13; i++) {
@@ -243,9 +288,21 @@
                 });
             }
 
+            function evaluateAIBid(hand) {
+                let bid = 0;
+                hand.forEach(c => {
+                    if (c.val === 'A' || c.val === 'K') bid++; // High cards usually win
+                    if (c.suit === '♠' && ['Q', 'J', '10'].includes(c.val)) bid += 0.5; // High spades
+                });
+                return Math.max(1, Math.round(bid)); // AI rarely bids 0 for safety in this version
+            }
+
             function startNewRound() {
                 cardsPlayedThisRound = 0;
                 tricks = { 'You': 0, 'Helen': 0, 'Frank': 0, 'Alice': 0 };
+                bids = { 'You': 0, 'Helen': 0, 'Frank': 0, 'Alice': 0 };
+                isBiddingPhase = true;
+                
                 updateTrickUI();
                 resetVisualHands();
                 
@@ -260,7 +317,7 @@
                     [deck[i], deck[j]] = [deck[j], deck[i]];
                 }
 
-                // Deal hands to ALL players
+                // Deal hands
                 const initialHand = deck.splice(0, 13);
                 aiHands['Frank'] = deck.splice(0, 13);
                 aiHands['Helen'] = deck.splice(0, 13);
@@ -282,9 +339,27 @@
                     myHandContainer.appendChild(cardDiv);
                 });
 
+                // Trigger Bidding Phase
+                turnPrompt.innerText = "Bidding Phase...";
+                turnPrompt.style.backgroundColor = "rgba(100, 100, 100, 0.9)";
+                biddingModal.style.display = 'block';
+                document.querySelectorAll('.bid-btn').forEach(btn => btn.classList.remove('selected'));
+                confirmBidBtn.disabled = true;
+            }
+
+            confirmBidBtn.addEventListener('click', () => {
+                bids['You'] = selectedBid;
+                bids['Frank'] = evaluateAIBid(aiHands['Frank']);
+                bids['Helen'] = evaluateAIBid(aiHands['Helen']);
+                bids['Alice'] = evaluateAIBid(aiHands['Alice']);
+                
+                updateTrickUI();
+                biddingModal.style.display = 'none';
+                isBiddingPhase = false;
+                
                 currentTrickWinner = 'You'; 
                 startTrickCycle();
-            }
+            });
 
             function resolveTrickWinner(trickCards) {
                 let leadSuit = trickCards[0].suit;
@@ -324,7 +399,6 @@
                     turnPrompt.style.backgroundColor = "rgba(150, 0, 0, 0.8)";
                     
                     setTimeout(() => {
-                        // AI FOLLOW SUIT LOGIC
                         let aiHand = aiHands[nextActivePlayer];
                         let validCards = aiHand;
                         let leadSuit = currentTrickCards.length > 0 ? currentTrickCards[0].suit : null;
@@ -334,12 +408,10 @@
                             if (matchingCards.length > 0) validCards = matchingCards;
                         }
 
-                        // Pick randomly from valid cards (basic AI)
                         let pickIdx = Math.floor(Math.random() * validCards.length);
                         let aiCard = validCards[pickIdx];
-                        aiHand.splice(aiHand.indexOf(aiCard), 1); // Remove from their hand
+                        aiHand.splice(aiHand.indexOf(aiCard), 1); 
 
-                        // Visually hide one card back from their pile
                         let backCard = document.getElementById(`${nextActivePlayer.toLowerCase()}-back-${aiHand.length}`);
                         if(backCard) backCard.style.visibility = 'hidden';
 
@@ -350,9 +422,8 @@
             }
 
             function handleUserCardClick(event) {
-                if (!isUserTurnActive || this.classList.contains('played')) return;
+                if (!isUserTurnActive || this.classList.contains('played') || isBiddingPhase) return;
 
-                // --- USER FOLLOW SUIT VALIDATION ---
                 let leadSuit = currentTrickCards.length > 0 ? currentTrickCards[0].suit : null;
                 let clickedSuit = this.dataset.suit;
                 
@@ -370,10 +441,9 @@
                                 turnPrompt.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
                             }
                         }, 2000);
-                        return; // Block the play
+                        return; 
                     }
                 }
-                // ------------------------------------
 
                 isUserTurnActive = false;
                 this.style.visibility = 'hidden';
@@ -404,6 +474,37 @@
                 });
             }
 
+            function calculateTeamScore(teamBids, teamTricks, teamIndex) {
+                let bid = teamBids;
+                let trick = teamTricks;
+                let score = 0;
+                let bags = 0;
+
+                if (trick < bid) {
+                    score = bid * -10; 
+                } else {
+                    score = bid * 10;
+                    bags = trick - bid;
+                    score += bags;
+                }
+                
+                if (teamIndex === 1) {
+                    currentTeamScores.team1 += score;
+                    currentTeamScores.bags1 += bags;
+                    if (currentTeamScores.bags1 >= 10) {
+                        currentTeamScores.team1 -= 100;
+                        currentTeamScores.bags1 -= 10;
+                    }
+                } else {
+                    currentTeamScores.team2 += score;
+                    currentTeamScores.bags2 += bags;
+                    if (currentTeamScores.bags2 >= 10) {
+                        currentTeamScores.team2 -= 100;
+                        currentTeamScores.bags2 -= 10;
+                    }
+                }
+            }
+
             function finishTrick() {
                 currentTrickWinner = resolveTrickWinner(currentTrickCards);
                 
@@ -418,9 +519,14 @@
                     playArea.innerHTML = ''; 
                     
                     if (cardsPlayedThisRound >= 13) {
+                        // End of Round Scoring
+                        calculateTeamScore(bids['You'] + bids['Helen'], tricks['You'] + tricks['Helen'], 1);
+                        calculateTeamScore(bids['Frank'] + bids['Alice'], tricks['Frank'] + tricks['Alice'], 2);
+                        updateTrickUI();
+
                         turnPrompt.innerText = "Round Over! Shuffling deck...";
                         turnPrompt.style.backgroundColor = "rgba(0, 0, 150, 0.9)";
-                        setTimeout(startNewRound, 2500);
+                        setTimeout(startNewRound, 3000);
                     } else {
                         startTrickCycle(); 
                     }
