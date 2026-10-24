@@ -92,7 +92,18 @@
         #avatar-alice { background-image: url('alice-avatar.png'); }
         #avatar-user { background-image: url('user-avatar.png'); }
 
-        .player-stats { font-size: 13px; line-height: 1.4; background: rgba(0,0,0,0.7); padding: 6px 12px; border-radius: 6px; border: 1px solid #444; }
+        .player-stats { 
+            font-size: 13px; line-height: 1.4; background: rgba(0,0,0,0.7); 
+            padding: 6px 12px; border-radius: 6px; border: 1px solid #444; 
+        }
+        /* New Highlight for Tricks/Bids */
+        .player-stats span {
+            color: #fca311;
+            font-weight: bold;
+            font-size: 14px;
+            display: block;
+            margin-top: 3px;
+        }
         
         #player-top { top: 20px; left: 50%; transform: translateX(-50%); }
         #player-bottom { bottom: 20px; left: 50%; transform: translateX(-50%); }
@@ -162,13 +173,10 @@
             <button id="close-settings-btn" class="btn" style="width: 100%;">Save & Close</button>
         </div>
 
-        <!-- NEW: Bidding Modal -->
         <div id="bidding-modal">
             <h2>Place Your Bid</h2>
             <p>Review your hand and predict how many tricks you will win.</p>
-            <div class="bid-grid" id="bid-buttons">
-                <!-- JS populates buttons 0-13 here -->
-            </div>
+            <div class="bid-grid" id="bid-buttons"></div>
             <button id="confirm-bid-btn" class="btn" style="width: 100%;" disabled>Confirm Bid</button>
         </div>
 
@@ -207,7 +215,6 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- UI Menus & Settings ---
             const soundBtn = document.getElementById('sound-btn');
             let isMuted = false;
             soundBtn.addEventListener('click', () => { isMuted = !isMuted; soundBtn.innerText = isMuted ? '🔇' : '🔊'; });
@@ -226,7 +233,6 @@
             brightnessSlider.addEventListener('input', (e) => { gameBoard.style.filter = `brightness(${e.target.value}%)`; });
             document.addEventListener('click', (event) => { if (event.target !== menuBtn && !dropdownMenu.contains(event.target)) dropdownMenu.style.display = 'none'; });
 
-            // --- Spades Logic & Deck Generation ---
             const suits = ['♠', '♥', '♣', '♦'];
             const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
             const suitOrder = { '♠': 1, '♥': 2, '♣': 3, '♦': 4 };
@@ -236,7 +242,6 @@
             const playArea = document.getElementById('play-area');
             const turnPrompt = document.getElementById('turn-prompt');
             
-            // --- BIDDING UI SETUP ---
             const biddingModal = document.getElementById('bidding-modal');
             const bidButtonsContainer = document.getElementById('bid-buttons');
             const confirmBidBtn = document.getElementById('confirm-bid-btn');
@@ -291,10 +296,10 @@
             function evaluateAIBid(hand) {
                 let bid = 0;
                 hand.forEach(c => {
-                    if (c.val === 'A' || c.val === 'K') bid++; // High cards usually win
-                    if (c.suit === '♠' && ['Q', 'J', '10'].includes(c.val)) bid += 0.5; // High spades
+                    if (c.val === 'A' || c.val === 'K') bid++;
+                    if (c.suit === '♠' && ['Q', 'J', '10'].includes(c.val)) bid += 0.5; 
                 });
-                return Math.max(1, Math.round(bid)); // AI rarely bids 0 for safety in this version
+                return Math.max(1, Math.round(bid)); 
             }
 
             function startNewRound() {
@@ -306,7 +311,6 @@
                 updateTrickUI();
                 resetVisualHands();
                 
-                // Build and shuffle deck
                 let deck = [];
                 suits.forEach(suit => {
                     const color = (suit === '♥' || suit === '♦') ? 'red' : 'black';
@@ -317,7 +321,6 @@
                     [deck[i], deck[j]] = [deck[j], deck[i]];
                 }
 
-                // Deal hands
                 const initialHand = deck.splice(0, 13);
                 aiHands['Frank'] = deck.splice(0, 13);
                 aiHands['Helen'] = deck.splice(0, 13);
@@ -339,7 +342,6 @@
                     myHandContainer.appendChild(cardDiv);
                 });
 
-                // Trigger Bidding Phase
                 turnPrompt.innerText = "Bidding Phase...";
                 turnPrompt.style.backgroundColor = "rgba(100, 100, 100, 0.9)";
                 biddingModal.style.display = 'block';
@@ -519,7 +521,6 @@
                     playArea.innerHTML = ''; 
                     
                     if (cardsPlayedThisRound >= 13) {
-                        // End of Round Scoring
                         calculateTeamScore(bids['You'] + bids['Helen'], tricks['You'] + tricks['Helen'], 1);
                         calculateTeamScore(bids['Frank'] + bids['Alice'], tricks['Frank'] + tricks['Alice'], 2);
                         updateTrickUI();
@@ -530,7 +531,7 @@
                     } else {
                         startTrickCycle(); 
                     }
-                }, 1500);
+                }, 3500); // FIX: Increased from 1500 to 3500 for a longer pause
             }
 
             startNewRound();
