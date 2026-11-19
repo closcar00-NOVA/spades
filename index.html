@@ -46,13 +46,28 @@
         .menu-item:hover { color: #fca311; }
 
         /* Modals */
-        #settings-modal, #bidding-modal, #gameover-modal {
+        #settings-modal, #bidding-modal, #gameover-modal, #rules-modal {
             display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background-color: rgba(0, 0, 0, 0.95); padding: 25px 40px; border-radius: 12px;
+            background-color: rgba(0, 0, 0, 0.95); padding: 25px 35px; border-radius: 12px;
             border: 2px solid #fca311; z-index: 100; text-align: center; box-shadow: 0px 10px 40px rgba(0,0,0,0.8);
             min-width: 300px;
         }
-        #settings-modal h2, #bidding-modal h2, #gameover-modal h2 { margin-top: 0; color: #fca311; }
+        #settings-modal h2, #bidding-modal h2, #gameover-modal h2, #rules-modal h2 {
+            margin-top: 0; color: #fca311;
+        }
+
+        /* How to Play Modal Specifics */
+        #rules-modal {
+            max-width: 520px;
+            width: 85%;
+            max-height: 80vh;
+            overflow-y: auto;
+            text-align: left;
+        }
+        #rules-modal h2 { text-align: center; margin-bottom: 15px; }
+        #rules-modal h3 { color: #fca311; font-size: 15px; margin: 14px 0 6px 0; border-bottom: 1px solid #333; padding-bottom: 4px; }
+        #rules-modal ul { margin: 0; padding-left: 20px; font-size: 13.5px; line-height: 1.55; color: #e5e7eb; }
+        #rules-modal li { margin-bottom: 5px; }
         
         /* Bidding UI Specifics */
         .bid-grid {
@@ -152,9 +167,45 @@
         .my-hand .card-face { margin-left: -30px; }
         .my-hand .card-face:first-child { margin-left: 0; }
 
-        #play-area { position: absolute; width: 250px; height: 250px; display: flex; justify-content: center; align-items: center; }
-        .played-card { position: absolute; pointer-events: none; margin: 0 !important; transform: scale(0.95); }
-        .card-drop-anim { opacity: 0; transform: scale(1.3); transition: opacity 0.3s ease-out, transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        /* Larger Center Play Area & Played Cards */
+        #play-area {
+            position: absolute;
+            width: 340px;
+            height: 280px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .played-card {
+            position: absolute;
+            pointer-events: none;
+            margin: 0 !important;
+            width: 96px;
+            height: 144px;
+            border-radius: 8px;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.65);
+        }
+        .played-card .card-value-top,
+        .played-card .card-value-bottom {
+            font-size: 19px;
+            top: 6px;
+            left: 7px;
+        }
+        .played-card .card-value-bottom {
+            top: auto;
+            left: auto;
+            bottom: 6px;
+            right: 7px;
+        }
+        .played-card .card-center-suit {
+            font-size: 42px;
+        }
+        .card-drop-anim {
+            opacity: 0;
+            transform: scale(1.25);
+            transition: opacity 0.3s ease-out, transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
     </style>
 </head>
 <body>
@@ -168,7 +219,7 @@
                 <button id="menu-btn" class="btn">☰</button>
                 <div id="dropdown-menu">
                     <button class="menu-item" id="open-settings-btn">Settings</button>
-                    <button class="menu-item">How to Play</button>
+                    <button class="menu-item" id="open-rules-btn">How to Play</button>
                     <button class="menu-item">Leave Table</button>
                 </div>
             </div>
@@ -181,6 +232,30 @@
                 <input type="range" id="brightness-slider" min="30" max="150" value="100" style="width: 100%; margin-top: 10px;">
             </div>
             <button id="close-settings-btn" class="btn" style="width: 100%;">Save & Close</button>
+        </div>
+
+        <!-- How to Play Modal -->
+        <div id="rules-modal">
+            <h2>How to Play Spades</h2>
+            <h3>Teams & Objective</h3>
+            <ul>
+                <li><strong>Partnerships:</strong> You &amp; Helen play against Frank &amp; Alice.</li>
+                <li><strong>Winning:</strong> First team to reach <strong>500 points</strong> at the end of a hand wins. If both teams tie at 500+, one tiebreaker hand is played.</li>
+            </ul>
+            <h3>Bidding &amp; Gameplay</h3>
+            <ul>
+                <li><strong>Bidding:</strong> Each player is dealt 13 cards and bids how many tricks they expect to win (0/Nil to 13). Partners' non-Nil bids combine into one team contract.</li>
+                <li><strong>Following Suit:</strong> You must play a card of the led suit if you hold one. If void, you may play any card, including a Spade (trump).</li>
+                <li><strong>Winning a Trick:</strong> The highest Spade wins; otherwise, the highest card of the led suit wins. The trick winner leads the next trick.</li>
+            </ul>
+            <h3>Scoring</h3>
+            <ul>
+                <li><strong>Make Team Bid:</strong> +10 points per trick bid.</li>
+                <li><strong>Overtricks ("Bags"):</strong> +1 point and +1 bag per extra trick. Reaching <strong>10 bags</strong> incurs a <strong>-100 point</strong> penalty.</li>
+                <li><strong>Missed Bid ("Set"):</strong> -10 points per trick bid.</li>
+                <li><strong>Nil (0 Bid):</strong> +100 points if you take 0 tricks; -100 points if you take 1 or more (scored separately from your partner's bid).</li>
+            </ul>
+            <button id="close-rules-btn" class="btn" style="width: 100%; margin-top: 18px;">Close</button>
         </div>
 
         <div id="bidding-modal">
@@ -299,7 +374,7 @@
                 }
             }
 
-            // --- UI Menus & Settings ---
+            // --- UI Menus, Settings & Rules ---
             const soundBtn = document.getElementById('sound-btn');
             soundBtn.addEventListener('click', () => {
                 isMuted = !isMuted;
@@ -312,12 +387,17 @@
             const settingsBtn = document.getElementById('open-settings-btn');
             const settingsModal = document.getElementById('settings-modal');
             const closeSettingsBtn = document.getElementById('close-settings-btn');
+            const rulesBtn = document.getElementById('open-rules-btn');
+            const rulesModal = document.getElementById('rules-modal');
+            const closeRulesBtn = document.getElementById('close-rules-btn');
             const brightnessSlider = document.getElementById('brightness-slider');
             const gameBoard = document.getElementById('game-board');
 
             menuBtn.addEventListener('click', () => { playSound('click'); dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block'; });
-            settingsBtn.addEventListener('click', () => { playSound('click'); dropdownMenu.style.display = 'none'; settingsModal.style.display = 'block'; });
+            settingsBtn.addEventListener('click', () => { playSound('click'); dropdownMenu.style.display = 'none'; rulesModal.style.display = 'none'; settingsModal.style.display = 'block'; });
             closeSettingsBtn.addEventListener('click', () => { playSound('click'); settingsModal.style.display = 'none'; });
+            rulesBtn.addEventListener('click', () => { playSound('click'); dropdownMenu.style.display = 'none'; settingsModal.style.display = 'none'; rulesModal.style.display = 'block'; });
+            closeRulesBtn.addEventListener('click', () => { playSound('click'); rulesModal.style.display = 'none'; });
             brightnessSlider.addEventListener('input', (e) => { gameBoard.style.filter = `brightness(${e.target.value}%)`; });
             document.addEventListener('click', (event) => { if (event.target !== menuBtn && !dropdownMenu.contains(event.target)) dropdownMenu.style.display = 'none'; });
 
@@ -599,16 +679,16 @@
                 playedCard.className = `card-face played-card card-drop-anim ${color}`;
                 playedCard.innerHTML = `<div class="card-value-top">${val}<br>${suit}</div><div class="card-center-suit">${suit}</div><div class="card-value-bottom">${val}<br>${suit}</div>`;
                 
-                if (player === 'You') { playedCard.style.bottom = '10px'; }
-                else if (player === 'Frank') { Object.assign(playedCard.style, { left: '10px', top: '50px' }); }
-                else if (player === 'Helen') { Object.assign(playedCard.style, { top: '10px' }); }
-                else if (player === 'Alice') { Object.assign(playedCard.style, { right: '10px', top: '50px' }); }
+                if (player === 'You') { playedCard.style.bottom = '0px'; }
+                else if (player === 'Frank') { Object.assign(playedCard.style, { left: '15px', top: '68px' }); }
+                else if (player === 'Helen') { Object.assign(playedCard.style, { top: '0px' }); }
+                else if (player === 'Alice') { Object.assign(playedCard.style, { right: '15px', top: '68px' }); }
 
                 playArea.appendChild(playedCard);
 
                 requestAnimationFrame(() => {
                     playedCard.style.opacity = '1';
-                    playedCard.style.transform = 'scale(0.95)';
+                    playedCard.style.transform = 'scale(1)';
                 });
             }
 
