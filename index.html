@@ -46,12 +46,13 @@
         .menu-item:hover { color: #fca311; }
 
         /* Modals */
-        #settings-modal, #bidding-modal {
+        #settings-modal, #bidding-modal, #gameover-modal {
             display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background-color: rgba(0, 0, 0, 0.95); padding: 25px 40px; border-radius: 12px;
             border: 2px solid #fca311; z-index: 100; text-align: center; box-shadow: 0px 10px 40px rgba(0,0,0,0.8);
+            min-width: 300px;
         }
-        #settings-modal h2, #bidding-modal h2 { margin-top: 0; color: #fca311; }
+        #settings-modal h2, #bidding-modal h2, #gameover-modal h2 { margin-top: 0; color: #fca311; }
         
         /* Bidding UI Specifics */
         .bid-grid {
@@ -62,6 +63,16 @@
         }
         .bid-btn:hover { background-color: #555; border-color: #fca311; }
         .bid-btn.selected { background-color: #fca311; color: black; border-color: white; }
+
+        #gameover-scores {
+            margin: 18px 0 22px 0;
+            font-size: 16px;
+            line-height: 1.8;
+            background: rgba(255, 255, 255, 0.06);
+            padding: 12px 18px;
+            border-radius: 8px;
+            border: 1px solid #444;
+        }
 
         #scoreboard {
             position: absolute; bottom: 20px; right: 20px;
@@ -179,6 +190,14 @@
             <button id="confirm-bid-btn" class="btn" style="width: 100%;" disabled>Confirm Bid</button>
         </div>
 
+        <!-- Game Over Modal (500 Points) -->
+        <div id="gameover-modal">
+            <h2 id="gameover-title">Match Complete!</h2>
+            <p id="gameover-winner" style="font-size: 18px; font-weight: bold; margin: 10px 0;"></p>
+            <div id="gameover-scores"></div>
+            <button id="play-again-btn" class="btn" style="width: 100%;">Play New Match</button>
+        </div>
+
         <div id="player-top" class="player-area">
             <div class="avatar-container"><div class="avatar" id="avatar-helen"></div><div class="player-stats">Helen<br><span id="helen-trick-text">0/0 Tricks</span></div></div>
             <div class="hand-horizontal"><script>for(let i=0; i<13; i++) document.write('<div class="card-back" id="helen-back-'+i+'"></div>');</script></div>
@@ -206,7 +225,7 @@
         </div>
 
         <div id="scoreboard">
-            <h3>Current Score</h3>
+            <h3>Current Score (To 500)</h3>
             <div class="score-row"><span>You & Helen</span><span id="score-team1">0 (0 bags)</span></div>
             <div class="score-row"><span>Frank & Alice</span><span id="score-team2">0 (0 bags)</span></div>
         </div>
@@ -239,7 +258,6 @@
                 gain.connect(audioCtx.destination);
 
                 if (type === 'card') {
-                    // Crisp card snap
                     osc.type = 'triangle';
                     osc.frequency.setValueAtTime(320, t);
                     osc.frequency.exponentialRampToValueAtTime(80, t + 0.08);
@@ -248,7 +266,6 @@
                     osc.start(t);
                     osc.stop(t + 0.08);
                 } else if (type === 'click') {
-                    // UI button tap
                     osc.type = 'sine';
                     osc.frequency.setValueAtTime(600, t);
                     osc.frequency.exponentialRampToValueAtTime(300, t + 0.05);
@@ -257,7 +274,6 @@
                     osc.start(t);
                     osc.stop(t + 0.05);
                 } else if (type === 'error') {
-                    // Invalid suit buzz
                     osc.type = 'sawtooth';
                     osc.frequency.setValueAtTime(150, t);
                     osc.frequency.linearRampToValueAtTime(110, t + 0.18);
@@ -266,7 +282,6 @@
                     osc.start(t);
                     osc.stop(t + 0.18);
                 } else if (type === 'win') {
-                    // Trick win chime
                     const notes = [440, 554.37, 659.25];
                     notes.forEach((freq, i) => {
                         const o = audioCtx.createOscillator();
@@ -307,6 +322,7 @@
             document.addEventListener('click', (event) => { if (event.target !== menuBtn && !dropdownMenu.contains(event.target)) dropdownMenu.style.display = 'none'; });
 
             // --- Spades Constants & State ---
+            const WINNING_SCORE = 500;
             const suits = ['♠', '♥', '♣', '♦'];
             const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
             const suitOrder = { '♠': 1, '♥': 2, '♣': 3, '♦': 4 };
@@ -319,6 +335,11 @@
             const biddingModal = document.getElementById('bidding-modal');
             const bidButtonsContainer = document.getElementById('bid-buttons');
             const confirmBidBtn = document.getElementById('confirm-bid-btn');
+            const gameoverModal = document.getElementById('gameover-modal');
+            const gameoverWinner = document.getElementById('gameover-winner');
+            const gameoverScores = document.getElementById('gameover-scores');
+            const playAgainBtn = document.getElementById('play-again-btn');
+
             let selectedBid = null;
 
             for(let i=0; i<=13; i++) {
@@ -440,6 +461,13 @@
                 startTrickCycle();
             });
 
+            playAgainBtn.addEventListener('click', () => {
+                playSound('click');
+                currentTeamScores = { team1: 0, bags1: 0, team2: 0, bags2: 0 };
+                gameoverModal.style.display = 'none';
+                startNewRound();
+            });
+
             function getWinningCard(trickCards) {
                 let leadSuit = trickCards[0].suit;
                 let winningCard = trickCards[0];
@@ -467,10 +495,8 @@
                     const leadSuit = currentTrickCards[0].suit;
 
                     if (currentWinner.player === 'You') {
-                        // Find all legal cards that beat your card
                         const coveringCards = validCards.filter(c => canCardBeat(c, currentWinner, leadSuit));
                         if (coveringCards.length > 0) {
-                            // Play the lowest covering card (preferring lead suit over spending a Spade)
                             coveringCards.sort((a, b) => {
                                 if (a.suit === '♠' && b.suit !== '♠') return 1;
                                 if (b.suit === '♠' && a.suit !== '♠') return -1;
@@ -481,7 +507,6 @@
                     }
                 }
 
-                // Standard AI pick
                 let pickIdx = Math.floor(Math.random() * validCards.length);
                 return validCards[pickIdx];
             }
@@ -593,7 +618,6 @@
                 let regularBid = 0;
                 let regularTricks = 0;
 
-                // Score Nil bids individually (+100 if 0 tricks, -100 if >= 1 trick)
                 [p1, p2].forEach(p => {
                     if (bids[p] === 0) {
                         score += (tricks[p] === 0) ? 100 : -100;
@@ -603,7 +627,6 @@
                     }
                 });
 
-                // Score remaining non-Nil bids
                 if (regularBid > 0) {
                     if (regularTricks < regularBid) {
                         score += regularBid * -10;
@@ -650,9 +673,33 @@
                         calculateTeamScore('Frank', 'Alice', 2);
                         updateTrickUI();
 
-                        turnPrompt.innerText = "Round Over! Shuffling deck...";
-                        turnPrompt.style.backgroundColor = "rgba(0, 0, 150, 0.9)";
-                        setTimeout(startNewRound, 3000);
+                        // 500-Point Game Over & Tiebreaker Check
+                        const t1 = currentTeamScores.team1;
+                        const t2 = currentTeamScores.team2;
+
+                        if (t1 >= WINNING_SCORE || t2 >= WINNING_SCORE) {
+                            if (t1 === t2) {
+                                turnPrompt.innerText = "Tied at 500+! Playing tiebreaker hand...";
+                                turnPrompt.style.backgroundColor = "rgba(180, 100, 0, 0.9)";
+                                setTimeout(startNewRound, 3000);
+                            } else {
+                                playSound('win');
+                                const winnerText = t1 > t2 ? "You & Helen Win the Match!" : "Frank & Alice Win the Match!";
+                                gameoverWinner.innerText = winnerText;
+                                gameoverWinner.style.color = t1 > t2 ? "#4ade80" : "#f87171";
+                                gameoverScores.innerHTML = `
+                                    <div>You & Helen: <strong>${t1} pts</strong> (${currentTeamScores.bags1} bags)</div>
+                                    <div>Frank & Alice: <strong>${t2} pts</strong> (${currentTeamScores.bags2} bags)</div>
+                                `;
+                                turnPrompt.innerText = "Game Over!";
+                                turnPrompt.style.backgroundColor = "rgba(0, 0, 0, 0.9)";
+                                gameoverModal.style.display = 'block';
+                            }
+                        } else {
+                            turnPrompt.innerText = "Round Over! Shuffling deck...";
+                            turnPrompt.style.backgroundColor = "rgba(0, 0, 150, 0.9)";
+                            setTimeout(startNewRound, 3000);
+                        }
                     } else {
                         startTrickCycle(); 
                     }
