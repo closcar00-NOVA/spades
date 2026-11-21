@@ -80,6 +80,24 @@
             margin-top: 0; color: #fca311;
         }
 
+        /* Compact Bidding Modal (Clear of Cards on Mobile) */
+        #bidding-modal {
+            top: 42%;
+            padding: 14px 22px;
+            max-width: 92vw;
+            box-sizing: border-box;
+        }
+        #bidding-modal h2 { font-size: 18px; margin-bottom: 4px; }
+        #bidding-modal p { font-size: 12.5px; margin: 0 0 10px 0; line-height: 1.3; color: #e2e8f0; }
+        .bid-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin: 10px 0 12px 0; }
+        .bid-btn {
+            background-color: #1e293b; color: white; border: 1.5px solid #475569; padding: 7px 4px;
+            font-size: 15px; font-weight: bold; cursor: pointer; border-radius: 6px; transition: all 0.2s;
+        }
+        .bid-btn:hover { background-color: #334155; border-color: #fca311; }
+        .bid-btn.selected { background-color: #fca311; color: black; border-color: white; }
+        #confirm-bid-btn { padding: 8px 12px; font-size: 15px; }
+
         /* How to Play Modal Specifics */
         #rules-modal {
             max-width: 520px; width: 85%; max-height: 80vh; overflow-y: auto; text-align: left;
@@ -88,15 +106,6 @@
         #rules-modal h3 { color: #fca311; font-size: 15px; margin: 14px 0 6px 0; border-bottom: 1px solid #333; padding-bottom: 4px; }
         #rules-modal ul { margin: 0; padding-left: 20px; font-size: 13.5px; line-height: 1.55; color: #e5e7eb; }
         #rules-modal li { margin-bottom: 5px; }
-        
-        /* Bidding UI Specifics */
-        .bid-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; margin: 20px 0; }
-        .bid-btn {
-            background-color: #333; color: white; border: 2px solid #555; padding: 10px;
-            font-size: 18px; font-weight: bold; cursor: pointer; border-radius: 8px; transition: all 0.2s;
-        }
-        .bid-btn:hover { background-color: #555; border-color: #fca311; }
-        .bid-btn.selected { background-color: #fca311; color: black; border-color: white; }
 
         #gameover-scores {
             margin: 18px 0 22px 0; font-size: 16px; line-height: 1.8;
@@ -147,25 +156,38 @@
         #player-left { left: 20px; top: 50%; transform: translateY(-50%); flex-direction: row; gap: 20px; }
         #player-right { right: 20px; top: 50%; transform: translateY(-50%); flex-direction: row-reverse; gap: 20px; }
 
-        /* --- Cards --- */
+        /* --- Custom Luxury Cards (Navy & Gold Accents) --- */
         .card-back {
-            width: 50px; height: 75px; background-color: #6a040f; border: 2px solid #fff; border-radius: 6px;
-            background-image: repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(255,255,255,0.1) 5px, rgba(255,255,255,0.1) 10px);
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+            width: 50px; height: 75px;
+            background-color: #0e1c36;
+            background-image: url('cardback.png');
+            background-size: cover;
+            background-position: center;
+            border: 2px solid #d4af37;
+            border-radius: 6px;
+            box-shadow: 2px 2px 6px rgba(0,0,0,0.6);
         }
 
         .card-face {
-            width: 70px; height: 105px; background-color: #fff; border: 1px solid #999; border-radius: 6px;
-            color: #000; position: relative; cursor: pointer; transition: transform 0.2s, margin-top 0.2s;
-            box-shadow: 2px 4px 8px rgba(0,0,0,0.5);
+            width: 70px; height: 105px;
+            background: linear-gradient(145deg, #fffdf8 0%, #f5eedc 100%);
+            border: 1.5px solid #c5a059;
+            border-radius: 6px;
+            color: #0f1c36; /* Deep navy to match card back */
+            position: relative; cursor: pointer;
+            transition: transform 0.2s, margin-top 0.2s, box-shadow 0.2s;
+            box-shadow: inset 0 0 0 2px rgba(212, 175, 55, 0.35), 2px 4px 8px rgba(0,0,0,0.55);
         }
 
-        .card-face:hover { transform: translateY(-15px); }
-        .card-face.red { color: #d00000; }
+        .card-face:hover {
+            transform: translateY(-15px);
+            box-shadow: inset 0 0 0 2px rgba(212, 175, 55, 0.7), 0 8px 18px rgba(252, 163, 17, 0.4);
+        }
+        .card-face.red { color: #b91c1c; } /* Rich crimson */
         
-        .card-value-top { position: absolute; top: 4px; left: 4px; display: flex; flex-direction: column; align-items: center; font-size: 14px; font-weight: bold; line-height: 1; }
-        .card-value-bottom { position: absolute; bottom: 4px; right: 4px; display: flex; flex-direction: column; align-items: center; font-size: 14px; font-weight: bold; line-height: 1; transform: rotate(180deg); }
-        .card-center-suit { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 28px; }
+        .card-value-top { position: absolute; top: 5px; left: 5px; display: flex; flex-direction: column; align-items: center; font-size: 14px; font-weight: bold; line-height: 1; }
+        .card-value-bottom { position: absolute; bottom: 5px; right: 5px; display: flex; flex-direction: column; align-items: center; font-size: 14px; font-weight: bold; line-height: 1; transform: rotate(180deg); }
+        .card-center-suit { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 28px; text-shadow: 0 1px 2px rgba(0,0,0,0.12); }
 
         .hand-horizontal { display: flex; gap: -20px; }
         .hand-horizontal .card-back { margin-left: -25px; }
@@ -187,19 +209,33 @@
         .played-card {
             position: absolute; pointer-events: none; margin: 0 !important;
             width: 96px; height: 144px; border-radius: 8px;
-            box-shadow: 0 6px 16px rgba(0,0,0,0.65);
+            border: 2px solid #d4af37;
+            box-shadow: inset 0 0 0 3px rgba(212, 175, 55, 0.35), 0 6px 16px rgba(0,0,0,0.65);
         }
         .played-card .card-value-top,
         .played-card .card-value-bottom {
-            font-size: 19px; top: 6px; left: 7px;
+            font-size: 19px; top: 7px; left: 8px;
         }
         .played-card .card-value-bottom {
-            top: auto; left: auto; bottom: 6px; right: 7px;
+            top: auto; left: auto; bottom: 7px; right: 8px;
         }
         .played-card .card-center-suit { font-size: 42px; }
         .card-drop-anim {
             opacity: 0; transform: scale(1.25);
             transition: opacity 0.3s ease-out, transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            #bidding-modal {
+                top: 38%;
+                padding: 12px 16px;
+                min-width: 270px;
+            }
+            #bidding-modal h2 { font-size: 16px; }
+            #bidding-modal p { font-size: 11.5px; margin-bottom: 8px; }
+            .bid-grid { gap: 5px; margin: 8px 0 10px 0; }
+            .bid-btn { padding: 6px 2px; font-size: 13px; }
         }
     </style>
 </head>
@@ -265,7 +301,7 @@
 
         <div id="bidding-modal">
             <h2>Place Your Bid</h2>
-            <p>Review your hand and predict how many tricks you will win.<br><small style="color:#fca311;">Nil (0) = +100 pts if made, -100 pts if broken.</small></p>
+            <p>Predict how many tricks you will win. <span style="color:#fca311;">Nil = +100 / -100 pts.</span></p>
             <div class="bid-grid" id="bid-buttons"></div>
             <button id="confirm-bid-btn" class="btn" style="width: 100%;" disabled>Confirm Bid</button>
         </div>
