@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spades Game</title>
-    <!-- Firebase Compat SDKs (Cloud Firestore) -->
+    <!-- Firebase Compat SDKs (Cloud Firestore + Auth) -->
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
     <style>
         /* --- Base & Table Setup --- */
@@ -405,6 +406,10 @@
                 loginBtn.disabled = true;
 
                 try {
+                    if (!firebase.auth().currentUser) {
+                        await firebase.auth().signInAnonymously();
+                    }
+
                     cloudDocRef = db.collection('saves').doc(cleanId);
                     const docSnap = await cloudDocRef.get();
 
